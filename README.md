@@ -1,16 +1,30 @@
-## Hi there 👋
+📊 Research & Publications
+Published AI/ML researcher focusing on practical applications of machine learning in ad-tech and user behavior prediction.
 
-<!--
-**camorithm/camorithm** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+📚 View my research on Google Scholar
 
-Here are some ideas to get you started:
+🏢 Current Work
+Founder @ AppCapy
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+Building ML-powered advertising technology
+Developing algorithms that optimize millions in ad spend
+Creating production systems that scale
+🎓 Education
+BSc Finance - University of Westminster
+
+📫 Get In Touch
+🐦 Twitter/X: @camorithm
+💼 LinkedIn: /in/camorithm
+📷 Instagram: @camorithm
+🎵 TikTok: @camorithm
+🔬 ResearchGate: Cameron-Batt
+🌐 Website: camorithm.com
+📧 Book a 15-min call: Schedule here
+💡 Philosophy
+"Every product starts as an idea, but not every idea becomes a product. I help ideas find form."
+
+From inception to final commit, I build ML systems that solve real-world problems at scale.
+
+⭐️ From camorithm | Building the future with algorithms
+
+Fun fact: I've taught AI to spend advertising budgets more efficiently than humans, and scaled businesses from concept to exit using data-driven decision making.
