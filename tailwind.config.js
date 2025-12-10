@@ -1,23 +1,17 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
 content: [
-  "./index.html",
-  "./src/**/*.{js,ts,jsx,tsx}",
+  './app/**/*.{js,ts,jsx,tsx,mdx}',
+  './components/**/*.{js,ts,jsx,tsx,mdx}',
 ],
 theme: {
   extend: {
     fontFamily: {
-      // Now you can just use className="font-sans" or "font-display"
-      sans: ['Inter', 'sans-serif'],
-      display: ['Space Grotesk', 'sans-serif'],
+      // This links the CSS variable from layout.tsx to the class "font-sans"
+      sans: ['var(--font-inter)', 'sans-serif'],
+      // This links to the class "font-['Space_Grotesk']"
+      'Space_Grotesk': ['var(--font-space)', 'sans-serif'],
     },
-    colors: {
-      // Add the specific FTMO-style blue to your theme
-      brand: {
-        blue: '#007aff', 
-        dark: '#0a0b0d',
-      }
-    }
   },
 },
 plugins: [],

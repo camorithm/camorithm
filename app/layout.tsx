@@ -1,25 +1,34 @@
-import './globals.css'
-import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
-import React from 'react'
+import './globals.css';
+import { Inter, Space_Grotesk } from 'next/font/google';
 
-const inter = Inter({ subsets: ['latin'] })
+// Load the fonts
+const inter = Inter({ 
+subsets: ['latin'],
+variable: '--font-inter',
+display: 'swap',
+});
 
-export const metadata: Metadata = {
-title: 'Cameron Batt | GTM Go-To-Market Consultant',
-description: 'AI Researcher & GTM Consultant',
-}
+const spaceGrotesk = Space_Grotesk({ 
+subsets: ['latin'],
+variable: '--font-space',
+display: 'swap',
+});
+
+export const metadata = {
+title: 'PropFirm - Fund Your Trading',
+description: 'Get funded up to $200k',
+};
 
 export default function RootLayout({
 children,
 }: {
-children: React.ReactNode
+children: React.ReactNode;
 }) {
 return (
-  // @ts-ignore
-  <html lang="en">
-    <body className={inter.className}>{children}</body>
-  {/* @ts-ignore */}
+  <html lang="en" className="scroll-smooth">
+    <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans bg-[#0a0b0d] text-white antialiased`}>
+      {children}
+    </body>
   </html>
-)
+);
 }
