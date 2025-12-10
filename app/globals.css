@@ -2,35 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 1. Import the specific fonts used in the design (Space Grotesk & Inter) */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
 html {
-/* This makes the "Work" and "Research" links scroll smoothly */
 scroll-behavior: smooth;
 }
 
 body {
-/* Matches your #050505 background to prevent white flashes on load */
-background-color: #050505;
+/* Dark background matching the Hero section */
+background-color: #0a0b0d; 
 color: #e2e8f0;
 
-/* Makes text look sharper on Mac/iOS */
+/* Font smoothing for crisp text on high-res monitors */
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
+
+/* Defaults to Inter, uses Space Grotesk for Headers via utility classes */
+font-family: 'Inter', sans-serif;
 }
 
-/* Optional: Custom scrollbar for a sleeker look */
+/* 2. Global Text Selection Color (The "Blue Highlight" Effect) */
+::selection {
+background-color: #007aff; /* Matches the Electric Blue buttons */
+color: white;
+}
+
+/* 3. Custom Scrollbar - Updated to match the Blue Theme */
 ::-webkit-scrollbar {
-width: 10px;
+width: 8px; /* Slightly thinner for a more modern feel */
 }
 
 ::-webkit-scrollbar-track {
-background: #050505;
+background: #0a0b0d;
 }
 
 ::-webkit-scrollbar-thumb {
 background: #333;
-border-radius: 5px;
+border-radius: 4px;
+transition: background 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-background: #4f46e5; /* Indigo-600 to match your theme */
+background: #007aff; /* Changed from Indigo to Electric Blue */
+}
+
+/* 4. Utility: Glassmorphism Card helper (Optional usage in components) */
+.glass-panel {
+background: rgba(255, 255, 255, 0.03);
+backdrop-filter: blur(10px);
+border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* 5. Utility: The "Aurora" Background Animation (Slow floating blobs) */
+@keyframes float {
+0% { transform: translate(0px, 0px) scale(1); }
+33% { transform: translate(30px, -50px) scale(1.1); }
+66% { transform: translate(-20px, 20px) scale(0.9); }
+100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob {
+animation: float 10s infinite ease-in-out;
 }
