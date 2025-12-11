@@ -1,182 +1,189 @@
 'use client';
 
 import React from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, ReferenceLine } from 'recharts';
-import { MoreHorizontal, ArrowUpRight, Download, Filter, TrendingUp, Activity } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Activity, Clock, Calendar } from 'lucide-react';
+import { RightPanel } from '../../components/dashboard/RightPanel';
+import { MarketTicker } from '../../components/dashboard/MarketTicker';
 
 // --- MOCK DATA ---
 const equityData = [
-{ date: 'Nov 01', value: 100000 }, { date: 'Nov 05', value: 101200 },
-{ date: 'Nov 10', value: 100800 }, { date: 'Nov 15', value: 102500 },
-{ date: 'Nov 20', value: 101900 }, { date: 'Nov 25', value: 103400 },
-{ date: 'Nov 30', value: 104250 },
+{ date: '01', value: 100000 }, { date: '05', value: 101200 },
+{ date: '10', value: 100800 }, { date: '15', value: 102500 },
+{ date: '20', value: 101900 }, { date: '25', value: 103400 },
+{ date: '30', value: 104250 },
 ];
-const volumeData = [
-{ day: 'Mon', buy: 40, sell: 24 }, { day: 'Tue', buy: 30, sell: 13 },
-{ day: 'Wed', buy: 20, sell: 58 }, { day: 'Thu', buy: 27, sell: 39 },
-{ day: 'Fri', buy: 18, sell: 48 },
-];
-
-const CustomTooltip = ({ active, payload, label }: any) => {
-if (active && payload && payload.length) {
-  return (
-    <div className="bg-white/90 dark:bg-[#13151a]/90 backdrop-blur-md border border-slate-200 dark:border-white/10 p-4 rounded-xl shadow-xl">
-      <p className="text-xs text-slate-500 font-medium mb-1">{label}</p>
-      <p className="text-lg font-bold text-slate-900 dark:text-white">
-        ${payload[0].value.toLocaleString()}
-      </p>
-      <div className="flex items-center gap-1 mt-1 text-xs font-bold text-green-500">
-        <TrendingUp size={12} /> <span>+{(payload[0].value - 100000) / 1000}% Growth</span>
-      </div>
-    </div>
-  );
-}
-return null;
-};
 
 export default function DashboardPage() {
 return (
-  <div className="max-w-7xl mx-auto space-y-6">
-    {/* Controls */}
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <SelectDropdown label="Last 30 Days" />
-        <span className="text-slate-300 text-sm">vs.</span>
-        <SelectDropdown label="Previous Period" />
-      </div>
-      <div className="flex items-center gap-3">
-        <ActionBtn icon={<Filter size={14} />} label="Filters" />
-        <ActionBtn icon={<Download size={14} />} label="Export" />
-      </div>
-    </div>
-
-    {/* --- GRID LAYOUT --- */}
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div className="flex h-[calc(100vh-80px)] -m-6 md:-m-8 bg-[#f8f9fa] dark:bg-[#050505] text-slate-900 dark:text-white overflow-hidden transition-colors duration-300">
+    
+    {/* MAIN TERMINAL AREA */}
+    <div className="flex-1 flex flex-col min-w-0 overflow-y-auto custom-scrollbar xl:mr-[280px]">
       
-      {/* CHART 1: MAIN EQUITY CURVE */}
-      <div className="lg:col-span-2 bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm flex flex-col h-[400px]">
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-sm font-medium text-slate-500">Equity Curve</h2>
-            </div>
-            <div className="flex items-end gap-3">
-              <span className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">$104,250.00</span>
-              <span className="flex items-center text-sm font-bold text-green-500 mb-1.5 bg-green-500/10 px-2 py-0.5 rounded-md">
-                <ArrowUpRight size={14} className="mr-1" /> 4.25%
-              </span>
-            </div>
-          </div>
-          <button className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors text-slate-400">
-            <MoreHorizontal size={20} />
-          </button>
-        </div>
+      {/* 1. Market Ticker */}
+      <MarketTicker />
 
-        <div className="flex-1 w-full min-h-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={equityData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.3} />
-              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} tickFormatter={(value) => `$${value/1000}k`} />
-              <Tooltip content={<CustomTooltip />} />
-              <ReferenceLine y={110000} label="Target" stroke="green" strokeDasharray="3 3" />
-              <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" animationDuration={1500} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      <div className="p-6 space-y-6">
+          
+          {/* 2. Account Header (The "Big Numbers") */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <TerminalCard label="ACCOUNT EQUITY">
+                  <div className="text-3xl font-mono font-bold text-slate-900 dark:text-white tracking-tight">$104,250.00</div>
+                  <div className="flex items-center gap-2 mt-2">
+                      <span className="bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 text-xs font-mono px-1.5 py-0.5 rounded">+4.25%</span>
+                      <span className="text-xs text-slate-500">+$4,250.00</span>
+                  </div>
+              </TerminalCard>
+              
+              <TerminalCard label="BALANCE">
+                  <div className="text-2xl font-mono font-bold text-slate-700 dark:text-slate-300">$103,800.00</div>
+                  <div className="text-xs text-slate-500 mt-2">Floating P/L: <span className="text-green-600 dark:text-green-400 font-bold">+$450.00</span></div>
+              </TerminalCard>
 
-      {/* CHART 2: VOLUME & STATS */}
-      <div className="flex flex-col gap-6">
-        <div className="bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm flex-1">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-sm text-slate-700 dark:text-slate-200">Volume Analysis</h3>
-            <Activity size={16} className="text-slate-400" />
+              <TerminalCard label="WIN RATE">
+                  <div className="text-2xl font-mono font-bold text-slate-700 dark:text-slate-300">68.5%</div>
+                  <div className="w-full bg-slate-200 dark:bg-white/10 h-1 mt-3 rounded-full overflow-hidden">
+                      <div className="bg-blue-600 dark:bg-blue-500 h-full w-[68%]"></div>
+                  </div>
+              </TerminalCard>
+
+              <TerminalCard label="AVG R:R">
+                  <div className="text-2xl font-mono font-bold text-slate-700 dark:text-slate-300">1 : 2.4</div>
+                  <div className="text-xs text-slate-500 mt-2">Risk $100 to make $240</div>
+              </TerminalCard>
           </div>
-          <div className="h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={volumeData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" opacity={0.3} />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '8px', border: 'none', background: '#1e293b', color: '#fff' }} />
-                <Bar dataKey="buy" fill="#3b82f6" radius={[4, 4, 0, 0]} stackId="a" />
-                <Bar dataKey="sell" fill="#ef4444" radius={[4, 4, 0, 0]} stackId="a" />
-              </BarChart>
-            </ResponsiveContainer>
+
+          {/* 3. Main Chart (Technical Look) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
+              <div className="lg:col-span-2 bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-xl p-1 relative group shadow-sm">
+                  <div className="absolute top-4 left-4 z-10 flex gap-4">
+                      <div className="flex items-center gap-2 text-xs font-mono text-slate-500 dark:text-slate-400">
+                          <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                          LIVE EXECUTION
+                      </div>
+                  </div>
+                  {/* Recharts Wrapper */}
+                  <div className="w-full h-full bg-slate-50/50 dark:bg-[url('https://grainy-gradients.vercel.app/noise.svg')] dark:opacity-100">
+                      <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={equityData}>
+                          <defs>
+                          <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                          </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.1} />
+                          <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'monospace' }} dy={10} />
+                          <YAxis orientation="right" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10, fontFamily: 'monospace' }} tickFormatter={(val) => `$${val/1000}k`} />
+                          <Tooltip 
+                              contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderColor: '#e2e8f0', borderRadius: '8px', color: '#000' }}
+                              itemStyle={{ color: '#0f172a', fontFamily: 'monospace' }}
+                          />
+                          <Area type="monotone" dataKey="value" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#chartGradient)" />
+                      </AreaChart>
+                      </ResponsiveContainer>
+                  </div>
+              </div>
+
+              {/* 4. The "Tape" (Recent Trades) */}
+              <div className="bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-xl overflow-hidden flex flex-col shadow-sm">
+                  <div className="px-4 py-3 border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] flex justify-between items-center">
+                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Trade Log</span>
+                      <Activity size={14} className="text-slate-400" />
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                      <table className="w-full text-xs font-mono">
+                          <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                              <TapeRow pair="EURUSD" side="BUY" size="5.00" time="10:42" pl="+$420" />
+                              <TapeRow pair="GBPUSD" side="SELL" size="2.50" time="09:15" pl="+$120" />
+                              <TapeRow pair="XAUUSD" side="BUY" size="1.00" time="08:30" pl="-$45" loss />
+                              <TapeRow pair="US30" side="SELL" size="0.50" time="08:15" pl="+$210" />
+                              <TapeRow pair="BTCUSD" side="BUY" size="0.10" time="07:45" pl="+$850" />
+                              <TapeRow pair="NAS100" side="SELL" size="1.00" time="06:20" pl="-$110" loss />
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
           </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <StatCard label="Avg Win" value="$450.00" color="text-green-500" />
-          <StatCard label="Avg Loss" value="-$120.50" color="text-red-500" />
-        </div>
+
+          {/* 5. Bottom Widgets */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Economic Calendar Widget */}
+              <div className="bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-xl p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4 text-slate-400">
+                      <Calendar size={16} />
+                      <span className="text-xs font-bold uppercase tracking-widest">Upcoming News</span>
+                  </div>
+                  <div className="space-y-3">
+                      <NewsRow time="14:00" currency="USD" event="Core CPI m/m" impact="High" />
+                      <NewsRow time="14:30" currency="USD" event="Unemployment Claims" impact="Med" />
+                      <NewsRow time="16:00" currency="USD" event="Crude Oil Inventories" impact="Low" />
+                  </div>
+              </div>
+
+               {/* Session Map Widget */}
+               <div className="bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-xl p-5 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4 text-slate-400">
+                      <Clock size={16} />
+                      <span className="text-xs font-bold uppercase tracking-widest">Market Sessions</span>
+                  </div>
+                  <div className="space-y-4">
+                      <SessionRow city="London" status="Open" color="text-green-500" />
+                      <SessionRow city="New York" status="Open" color="text-green-500" />
+                      <SessionRow city="Tokyo" status="Closed" color="text-slate-400" />
+                      <SessionRow city="Sydney" status="Closed" color="text-slate-400" />
+                  </div>
+              </div>
+          </div>
       </div>
     </div>
 
-    {/* RECENT TRADES */}
-    <div className="bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
-      <div className="px-6 py-4 border-b border-slate-200 dark:border-white/5 flex items-center justify-between">
-        <h3 className="font-semibold text-sm text-slate-700 dark:text-slate-200">Recent Trades</h3>
-        <button className="text-xs text-blue-500 font-medium hover:underline">View All Journal</button>
-      </div>
-      <table className="w-full text-sm text-left">
-        <thead className="bg-slate-50 dark:bg-white/[0.02] text-slate-500 font-medium border-b border-slate-200 dark:border-white/5">
-          <tr>
-            <th className="px-6 py-3 font-medium">Symbol</th>
-            <th className="px-6 py-3 font-medium">Type</th>
-            <th className="px-6 py-3 font-medium">Volume</th>
-            <th className="px-6 py-3 font-medium">Open Price</th>
-            <th className="px-6 py-3 font-medium">P/L</th>
-            <th className="px-6 py-3 text-right font-medium">Status</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-          <TradeRow symbol="EURUSD" type="Buy" vol="5.0" open="1.0850" pl="+$450.00" status="Closed" />
-          <TradeRow symbol="GBPUSD" type="Sell" vol="2.5" open="1.2400" pl="+$120.50" status="Closed" />
-          <TradeRow symbol="XAUUSD" type="Buy" vol="1.0" open="2045.50" pl="-$45.00" status="Open" isLoss />
-          <TradeRow symbol="USDCAD" type="Sell" vol="3.0" open="1.3500" pl="+$210.00" status="Closed" />
-        </tbody>
-      </table>
-    </div>
+    {/* RIGHT RAIL (The Missing Sidebar) */}
+    <RightPanel />
+
   </div>
 );
 }
 
-// --- HELPERS ---
-const ActionBtn = ({ icon, label }: any) => (
-<button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-  {icon} {label}
-</button>
+// --- TERMINAL WIDGET COMPONENTS ---
+
+const TerminalCard = ({ label, children }: any) => (
+  <div className="bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 p-5 rounded-xl hover:border-blue-500/30 dark:hover:border-white/10 transition-colors group shadow-sm">
+      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3 group-hover:text-blue-600 dark:group-hover:text-slate-400">{label}</div>
+      {children}
+  </div>
 );
-const SelectDropdown = ({ label }: { label: string }) => (
-<button className="flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 px-3 py-1.5 rounded-lg transition-colors">
-  {label} <svg width="10" height="6" viewBox="0 0 10 6" fill="none" className="opacity-50"><path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-</button>
+
+const TapeRow = ({ pair, side, size, time, pl, loss }: any) => (
+  <tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
+      <td className="px-4 py-3 text-slate-700 dark:text-slate-300 font-bold">{pair}</td>
+      <td className={`px-2 py-3 ${side === 'BUY' ? 'text-blue-600 dark:text-blue-400' : 'text-orange-500 dark:text-orange-400'}`}>{side}</td>
+      <td className="px-2 py-3 text-slate-500">{size}</td>
+      <td className="px-2 py-3 text-slate-600">{time}</td>
+      <td className={`px-4 py-3 text-right font-bold ${loss ? 'text-red-500' : 'text-green-600 dark:text-green-500'}`}>{pl}</td>
+  </tr>
 );
-const StatCard = ({ label, value, color }: any) => (
-<div className="bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 p-4 rounded-xl shadow-sm">
-  <div className="text-xs text-slate-400 font-medium mb-1">{label}</div>
-  <div className={`text-lg font-bold ${color}`}>{value}</div>
-</div>
+
+const NewsRow = ({ time, currency, event, impact }: any) => (
+  <div className="flex items-center justify-between text-xs font-mono border-l-2 border-slate-200 dark:border-white/10 pl-3">
+      <div className="flex items-center gap-3">
+          <span className="text-slate-500">{time}</span>
+          <span className="font-bold text-slate-700 dark:text-slate-300">{currency}</span>
+          <span className="text-slate-600 dark:text-slate-400">{event}</span>
+      </div>
+      <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${
+          impact === 'High' ? 'bg-red-500/10 text-red-500' : impact === 'Med' ? 'bg-orange-500/10 text-orange-500' : 'bg-slate-500/10 text-slate-500'
+      }`}>{impact}</span>
+  </div>
 );
-const TradeRow = ({ symbol, type, vol, open, pl, status, isLoss }: any) => (
-<tr className="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group">
-  <td className="px-6 py-4 font-medium text-slate-900 dark:text-white flex items-center gap-2">
-    <div className="w-2 h-2 rounded-full bg-slate-300 group-hover:bg-blue-500 transition-colors"></div> {symbol}
-  </td>
-  <td className={`px-6 py-4 font-medium ${type === 'Buy' ? 'text-blue-500' : 'text-orange-500'}`}>{type}</td>
-  <td className="px-6 py-4 text-slate-500">{vol}</td>
-  <td className="px-6 py-4 text-slate-500">{open}</td>
-  <td className={`px-6 py-4 font-bold ${isLoss ? 'text-red-500' : 'text-green-500'}`}>{pl}</td>
-  <td className="px-6 py-4 text-right">
-    <span className={`text-xs font-bold px-2.5 py-1 rounded-md ${status === 'Open' ? 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' : 'bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400'}`}>
-      {status}
-    </span>
-  </td>
-</tr>
+
+const SessionRow = ({ city, status, color }: any) => (
+  <div className="flex items-center justify-between">
+      <span className="text-sm text-slate-700 dark:text-slate-300">{city}</span>
+      <div className="flex items-center gap-2">
+          <div className={`w-1.5 h-1.5 rounded-full ${status === 'Open' ? 'bg-green-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+          <span className={`text-xs font-mono ${color}`}>{status}</span>
+      </div>
+  </div>
 );
