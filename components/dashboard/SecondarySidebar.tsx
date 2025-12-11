@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -14,9 +14,13 @@ import {
   X
 } from 'lucide-react';
 
-export const SecondarySidebar = () => {
+interface SecondarySidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const SecondarySidebar = ({ isOpen, onClose }: SecondarySidebarProps) => {
   const pathname = usePathname();
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Define menus for different contexts
   const menus: any = {
@@ -45,17 +49,17 @@ export const SecondarySidebar = () => {
     return null;
   }
 
-  // If collapsed, don't render
-  if (isCollapsed) return null;
+  // If not open, don't render
+  if (!isOpen) return null;
 
   return (
-    <aside className="fixed top-0 left-[70px] h-screen w-[220px] bg-[#0f1115] border-r border-white/5 flex flex-col py-6 z-40">
+    <aside className="fixed top-0 left-[70px] h-screen w-[220px] bg-[#0f1115] border-r border-white/5 flex flex-col py-6 z-40 animate-in slide-in-from-left duration-300">
       
       {/* Header with Close Button */}
       <div className="px-6 mb-8 flex items-center justify-between">
         <h2 className="text-sm font-bold text-white uppercase tracking-wider">{sectionTitle}</h2>
         <button
-          onClick={() => setIsCollapsed(true)}
+          onClick={onClose}
           className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
           title="Close sidebar"
         >
