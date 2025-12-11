@@ -27,7 +27,6 @@ toggleTheme: () => void;
 export const Sidebar = ({ isCollapsed, toggleCollapse, isDark, toggleTheme }: SidebarProps) => {
 const pathname = usePathname();
 
-// Define the menu structure
 const navItems = [
   { label: 'Overview', icon: <LayoutDashboard size={20} />, href: '/dashboard', exact: true },
   { label: 'Journal', icon: <BookOpen size={20} />, href: '/dashboard/journal' },
@@ -39,14 +38,14 @@ const navItems = [
 
 return (
   <aside 
-    className={`fixed top-0 left-0 z-40 h-screen bg-white dark:bg-[#0f1115] border-r border-slate-200 dark:border-white/5 transition-all duration-300 ease-in-out flex flex-col ${
+    className={`fixed top-0 left-0 h-screen bg-white dark:bg-[#0f1115] border-r border-slate-200 dark:border-white/5 transition-all duration-300 ease-in-out flex flex-col z-50 ${
       isCollapsed ? 'w-[80px]' : 'w-[260px]'
     }`}
   >
     {/* 1. BRAND HEADER */}
     <div className={`h-20 flex items-center ${isCollapsed ? 'justify-center' : 'px-6 justify-between'} border-b border-slate-100 dark:border-white/5`}>
-      <div className="flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => window.location.href = '/'}>
-        <div className="w-8 h-8 flex-shrink-0 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold font-mono shadow-lg shadow-blue-500/30">
+      <Link href="/" className="flex items-center gap-3 overflow-hidden group">
+        <div className="w-8 h-8 flex-shrink-0 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold font-mono shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform">
           P
         </div>
         {!isCollapsed && (
@@ -54,9 +53,9 @@ return (
             PropFirm
           </span>
         )}
-      </div>
+      </Link>
       
-      {/* Collapse Button (Only visible when expanded) */}
+      {/* Desktop Collapse Button */}
       {!isCollapsed && (
         <button 
           onClick={toggleCollapse} 
@@ -70,9 +69,7 @@ return (
     {/* 2. NAVIGATION LINKS */}
     <nav className="flex-1 py-6 px-3 space-y-1 overflow-y-auto overflow-x-hidden">
       {navItems.map((item) => {
-        // Logic for active state:
-        // If exact is true, path must match exactly (for Overview)
-        // Otherwise, check if path starts with href (for Journal/Settings subpages)
+        // Exact match for Overview, partial match for others
         const isActive = item.exact 
           ? pathname === item.href 
           : pathname.startsWith(item.href);
@@ -81,27 +78,24 @@ return (
           <Link 
             key={item.href} 
             href={item.href}
-            className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative ${
+            className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative cursor-pointer ${
               isActive 
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
                 : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
             } ${isCollapsed ? 'justify-center' : ''}`}
           >
-            {/* Icon */}
             <div className={`flex-shrink-0 transition-colors ${isActive ? 'text-white' : ''}`}>
               {item.icon}
             </div>
             
-            {/* Text Label */}
             {!isCollapsed && (
               <span className="font-medium text-sm whitespace-nowrap">{item.label}</span>
             )}
 
-            {/* Hover Tooltip (Only visible when collapsed) */}
+            {/* Tooltip for Collapsed State */}
             {isCollapsed && (
               <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap shadow-xl">
                 {item.label}
-                {/* Little arrow pointing left */}
                 <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
               </div>
             )}
@@ -120,23 +114,16 @@ return (
       >
         {isDark ? <Sun size={20} /> : <Moon size={20} />}
         {!isCollapsed && <span className="font-medium text-sm">Theme Mode</span>}
-        
-        {isCollapsed && (
-           <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap shadow-xl">
-           Switch Theme
-           <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
-         </div>
-        )}
       </button>
 
-      {/* Expand Button (Only visible when Collapsed) */}
+      {/* Re-Expand Button (Critical Fix for Closed State) */}
       {isCollapsed && (
          <button 
-         onClick={toggleCollapse} 
-         className="flex items-center justify-center p-3 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-blue-500 transition-colors"
-       >
-         <ChevronRight size={20} />
-       </button>
+           onClick={toggleCollapse} 
+           className="flex items-center justify-center p-3 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-blue-500 transition-colors"
+         >
+           <ChevronRight size={20} />
+         </button>
       )}
 
       {/* User Profile */}
@@ -146,14 +133,14 @@ return (
          </div>
          
          {!isCollapsed && (
-           <div className="flex-1 overflow-hidden">
+           <div className="flex-1 overflow-hidden text-left">
               <div className="text-xs font-bold text-slate-900 dark:text-white truncate">Alex Trader</div>
               <div className="text-[10px] text-slate-500 truncate">alex@propfirm.com</div>
            </div>
          )}
          
          {!isCollapsed && (
-           <button className="text-slate-400 hover:text-red-500 transition-colors" title="Logout">
+           <button className="text-slate-400 hover:text-red-500 transition-colors">
              <LogOut size={16} />
            </button>
          )}
