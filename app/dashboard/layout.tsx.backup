@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Sidebar } from '../../components/dashboard/Sidebar';
 import { SecondarySidebar } from '../../components/dashboard/SecondarySidebar';
 import { TopNav } from '../../components/dashboard/TopNav';
@@ -11,34 +11,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(true);
-
-  // Handle responsive breakpoint
-  useEffect(() => {
-    const checkDesktop = () => {
-      setIsDesktop(window.innerWidth >= 1024);
-    };
-    
-    checkDesktop();
-    window.addEventListener('resize', checkDesktop);
-    
-    return () => window.removeEventListener('resize', checkDesktop);
-  }, []);
 
   // Pages without secondary sidebar
   const showSecondary = !pathname.includes('/shop') && !pathname.includes('/competitions');
 
   const pageTitle = pathname.split('/').pop() || 'Overview';
-
-  // Calculate padding based on sidebar state
-  const getLeftPadding = () => {
-    if (!isDesktop) return '0px';
-    
-    if (showSecondary) {
-      return isCollapsed ? '300px' : '480px'; // 80px + 220px OR 260px + 220px
-    }
-    return isCollapsed ? '80px' : '260px';
-  };
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#050505] text-slate-900 dark:text-white font-sans selection:bg-blue-500/30">
@@ -49,7 +26,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onClose={() => setIsMobileMenuOpen(false)}
       />
 
-      {/* Primary Sidebar - Hidden on mobile */}
+      {/* Primary Sidebar */}
       <div className="hidden lg:block">
         <Sidebar 
           isCollapsed={isCollapsed}
@@ -57,20 +34,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         />
       </div>
 
-      {/* Secondary Sidebar - Hidden on mobile */}
+      {/* Secondary Sidebar */}
       {showSecondary && (
         <div className="hidden lg:block">
           <SecondarySidebar />
         </div>
       )}
 
-      {/* Main Content - Using inline style for dynamic padding */}
+      {/* Main Content - Fixed padding based on sidebar state */}
       <div 
         className="transition-all duration-300 ease-in-out flex flex-col min-h-screen"
         style={{
-          paddingLeft: getLeftPadding()
+          paddingLeft: '0px'
         }}
       >
+        <style jsx>{`
+          @media (min-width: 1024px) {
+            div {
+              padding-left: ${
+                showSecondary 
+                  ? (isCollapsed ? '300px' : '480px') 
+                  : (isCollapsed ? '80px' : '260px')
+              } !important;
+            }
+          }
+        `}</style>
+
         <TopNav 
           title={pageTitle}
           onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
