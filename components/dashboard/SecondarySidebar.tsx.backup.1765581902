@@ -7,17 +7,14 @@ import {
   LayoutDashboard, 
   BookOpen, 
   Wallet, 
-  ChevronRight,
-  BarChart3,
+  ChevronRight, 
+  CreditCard,
   FileText,
-  Shield
+  Shield,
+  BarChart3
 } from 'lucide-react';
 
-interface SecondarySidebarProps {
-  primaryCollapsed?: boolean;
-}
-
-export const SecondarySidebar = ({ primaryCollapsed = false }: SecondarySidebarProps) => {
+export const SecondarySidebar = () => {
   const pathname = usePathname();
 
   // Define menus for different contexts
@@ -30,7 +27,8 @@ export const SecondarySidebar = ({ primaryCollapsed = false }: SecondarySidebarP
     ],
     'settings': [
       { label: 'Profile', href: '/dashboard/settings', icon: <FileText size={16} />, exact: true },
-      { label: 'Security', href: '/dashboard/settings/security', icon: <Shield size={16} /> },
+      { label: 'Security', href: '/dashboard/settings?tab=security', icon: <Shield size={16} /> },
+      { label: 'Billing', href: '/dashboard/settings?tab=billing', icon: <CreditCard size={16} /> },
     ]
   };
 
@@ -41,20 +39,18 @@ export const SecondarySidebar = ({ primaryCollapsed = false }: SecondarySidebarP
   if (pathname.includes('/settings')) {
     activeMenu = menus['settings'];
     sectionTitle = 'Settings';
+  } else if (pathname.includes('/shop')) {
+    return null;
+  } else if (pathname.includes('/competitions')) {
+    return null;
   }
 
-  // Position based on primary sidebar state
-  const leftPosition = primaryCollapsed ? '80px' : '260px';
-
   return (
-    <aside 
-      className="fixed top-0 h-screen w-[220px] bg-white dark:bg-[#0f1115] border-r border-slate-200 dark:border-white/5 flex flex-col py-6 z-40 transition-all duration-300"
-      style={{ left: leftPosition }}
-    >
+    <aside className="fixed top-0 left-[70px] h-screen w-[220px] bg-[#0f1115] border-r border-white/5 flex flex-col py-6 z-40">
       
       {/* Header */}
       <div className="px-6 mb-8 flex items-center justify-between">
-        <h2 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{sectionTitle}</h2>
+        <h2 className="text-sm font-bold text-white uppercase tracking-wider">{sectionTitle}</h2>
       </div>
 
       {/* Menu Items */}
@@ -70,8 +66,8 @@ export const SecondarySidebar = ({ primaryCollapsed = false }: SecondarySidebarP
               href={item.href}
               className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 isActive 
-                  ? 'bg-slate-100 dark:bg-white/5 text-slate-900 dark:text-white font-medium' 
-                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.02]'
+                  ? 'bg-white/5 text-white font-medium' 
+                  : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.02]'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -87,8 +83,8 @@ export const SecondarySidebar = ({ primaryCollapsed = false }: SecondarySidebarP
       {/* Footer Info */}
       <div className="px-6 pb-4 mt-auto">
         <div className="p-4 rounded-xl bg-gradient-to-br from-blue-900/20 to-blue-800/20 border border-blue-500/20">
-          <div className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-1">Evaluation Phase 1</div>
-          <div className="text-[10px] text-blue-500/60 dark:text-blue-300/60">Account: #9920120</div>
+          <div className="text-xs font-bold text-blue-400 mb-1">Evaluation Phase 1</div>
+          <div className="text-[10px] text-blue-300/60">Account: #9920120</div>
         </div>
       </div>
     </aside>
