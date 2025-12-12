@@ -34,10 +34,10 @@ export const PrimarySidebar = ({
   };
 
   return (
-    <aside className="fixed top-0 left-0 h-screen w-[70px] bg-[#050505] border-r border-white/10 flex flex-col items-center py-6 z-50">
+    <aside className="fixed top-0 left-0 h-screen w-[70px] bg-[#050505] dark:bg-[#050505] border-r border-white/10 dark:border-white/10 hidden lg:flex flex-col items-center py-6 z-50">
       
       {/* 1. BRAND LOGO */}
-      <Link href="/" className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold font-mono text-xl shadow-lg shadow-blue-500/20 mb-8">
+      <Link href="/" className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold font-mono text-xl shadow-lg shadow-blue-500/20 mb-8 hover:scale-105 transition-transform">
         P
       </Link>
 
@@ -50,8 +50,9 @@ export const PrimarySidebar = ({
         >
           <PanelLeftOpen size={22} />
           {/* Tooltip */}
-          <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap border border-white/10">
+          <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap border border-white/10 shadow-xl">
             Open Sidebar
+            <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
           </div>
         </button>
       )}
@@ -117,8 +118,9 @@ const RailItem = ({ icon, label, active, href }: any) => (
   >
     {icon}
     {/* Tooltip */}
-    <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap border border-white/10">
+    <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap border border-white/10 shadow-xl">
       {label}
+      <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
     </div>
   </Link>
 );
