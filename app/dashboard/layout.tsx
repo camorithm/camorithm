@@ -12,9 +12,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Logic to determine layout width based on secondary sidebar presence
+  // Determine if secondary sidebar should show
   const showSecondary = !pathname.includes('/shop') && !pathname.includes('/competitions');
-  const marginLeft = showSecondary ? 'ml-[290px]' : 'ml-[70px]';
 
   const pageTitle = pathname.split('/').pop() || 'Overview';
 
@@ -45,8 +44,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       )}
 
-      {/* Main Content Area */}
-      <div className={`transition-all duration-300 ease-in-out flex flex-col min-h-screen lg:${marginLeft}`}>
+      {/* Main Content Area - FIX: Use proper conditional classes */}
+      <div className={`transition-all duration-300 ease-in-out flex flex-col min-h-screen ${
+        showSecondary ? 'lg:ml-[290px]' : 'lg:ml-[70px]'
+      }`}>
         <TopNav 
           title={pageTitle}
           onMobileMenuToggle={toggleMobileMenu}
