@@ -11,16 +11,10 @@ import {
   CreditCard,
   FileText,
   Shield,
-  X,
   BarChart3
 } from 'lucide-react';
 
-interface SecondarySidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export const SecondarySidebar = ({ isOpen, onClose }: SecondarySidebarProps) => {
+export const SecondarySidebar = () => {
   const pathname = usePathname();
 
   // Define menus for different contexts
@@ -51,22 +45,12 @@ export const SecondarySidebar = ({ isOpen, onClose }: SecondarySidebarProps) => 
     return null;
   }
 
-  // If not open, don't render
-  if (!isOpen) return null;
-
   return (
-    <aside className="fixed top-0 left-[70px] h-screen w-[220px] bg-[#0f1115] border-r border-white/5 flex flex-col py-6 z-40 animate-in slide-in-from-left duration-300">
+    <aside className="fixed top-0 left-[70px] h-screen w-[220px] bg-[#0f1115] border-r border-white/5 flex flex-col py-6 z-40">
       
-      {/* Header with Close Button */}
+      {/* Header */}
       <div className="px-6 mb-8 flex items-center justify-between">
         <h2 className="text-sm font-bold text-white uppercase tracking-wider">{sectionTitle}</h2>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
-          title="Close sidebar"
-        >
-          <X size={16} />
-        </button>
       </div>
 
       {/* Menu Items */}

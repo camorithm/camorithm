@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -16,7 +16,6 @@ import {
   Moon,
   Sun
 } from 'lucide-react';
-import { useTheme } from './ThemeProvider';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -25,7 +24,24 @@ interface SidebarProps {
 
 export const Sidebar = ({ isCollapsed, toggleCollapse }: SidebarProps) => {
   const pathname = usePathname();
-  const { theme, toggleTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(true);
+
+  useEffect(() => {
+    setMounted(true);
+    // Get theme from localStorage or document class
+    const savedTheme = localStorage.getItem('theme');
+    const currentIsDark = savedTheme === 'dark' || document.documentElement.classList.contains('dark');
+    setIsDark(currentIsDark);
+  }, []);
+
+  const toggleTheme = () => {
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    const newTheme = newIsDark ? 'dark' : 'light';
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.classList.toggle('dark', newIsDark);
+  };
 
   const navItems = [
     { label: 'Overview', icon: <LayoutDashboard size={20} />, href: '/dashboard', exact: true },
@@ -38,7 +54,7 @@ export const Sidebar = ({ isCollapsed, toggleCollapse }: SidebarProps) => {
 
   return (
     <aside 
-      className={`fixed top-0 left-0 h-screen bg-white dark:bg-[#0f1115] border-r border-slate-200 dark:border-white/5 transition-all duration-300 ease-in-out flex-col z-50 hidden lg:flex ${
+      className={`fixed top-0 left-0 h-screen bg-white dark:bg-[#0f1115] border-r border-slate-200 dark:border-white/5 transition-all duration-300 ease-in-out flex flex-col z-50 ${
         isCollapsed ? 'w-[80px]' : 'w-[260px]'
       }`}
     >
@@ -80,7 +96,7 @@ export const Sidebar = ({ isCollapsed, toggleCollapse }: SidebarProps) => {
               className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group relative cursor-pointer ${
                 isActive 
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' 
-                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
+                  : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white'
               } ${isCollapsed ? 'justify-center' : ''}`}
             >
               <div className={`flex-shrink-0 transition-colors ${isActive ? 'text-white' : ''}`}>
@@ -106,38 +122,32 @@ export const Sidebar = ({ isCollapsed, toggleCollapse }: SidebarProps) => {
       {/* 3. FOOTER ACTIONS */}
       <div className="p-3 border-t border-slate-100 dark:border-white/5 flex flex-col gap-2">
         
-        {/* Theme Toggle - NOW FUNCTIONAL */}
-        <button 
-          onClick={toggleTheme}
-          className={`flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group relative ${isCollapsed ? 'justify-center' : ''}`}
-        >
-          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          {!isCollapsed && (
-            <span className="font-medium text-sm">
-              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-            </span>
-          )}
-          
-          {/* Tooltip for Collapsed State */}
-          {isCollapsed && (
-            <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap shadow-xl">
-              {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-              <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
-            </div>
-          )}
-        </button>
+        {/* Theme Toggle - Only show when mounted */}
+        {mounted && (
+          <button 
+            onClick={toggleTheme}
+            className={`flex items-center gap-3 px-3 py-3 rounded-xl text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group relative ${isCollapsed ? 'justify-center' : ''}`}
+          >
+            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+            {!isCollapsed && <span className="font-medium text-sm">Theme Mode</span>}
+            
+            {/* Tooltip for collapsed state */}
+            {isCollapsed && (
+              <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap shadow-xl">
+                {isDark ? 'Light Mode' : 'Dark Mode'}
+                <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
+              </div>
+            )}
+          </button>
+        )}
 
         {/* Re-Expand Button */}
         {isCollapsed && (
           <button 
             onClick={toggleCollapse} 
-            className="flex items-center justify-center p-3 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-blue-500 transition-colors group relative"
+            className="flex items-center justify-center p-3 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-blue-500 transition-colors"
           >
             <ChevronRight size={20} />
-            <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap shadow-xl">
-              Expand
-              <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
-            </div>
           </button>
         )}
 
@@ -153,7 +163,6 @@ export const Sidebar = ({ isCollapsed, toggleCollapse }: SidebarProps) => {
                 <div className="text-xs font-bold text-slate-900 dark:text-white truncate">Alex Trader</div>
                 <div className="text-[10px] text-slate-500 truncate">alex@propfirm.com</div>
               </div>
-              
               <button className="text-slate-400 hover:text-red-500 transition-colors">
                 <LogOut size={16} />
               </button>

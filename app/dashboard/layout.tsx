@@ -1,28 +1,28 @@
 'use client';
 
 import React, { useState } from 'react';
-import { PrimarySidebar } from '../../components/dashboard/PrimarySidebar';
+import { Sidebar } from '../../components/dashboard/Sidebar';
 import { SecondarySidebar } from '../../components/dashboard/SecondarySidebar';
 import { TopNav } from '../../components/dashboard/TopNav';
 import { MobileNav } from '../../components/dashboard/MobileNav';
-import { ThemeProvider } from '../../components/dashboard/ThemeProvider';
 import { usePathname } from 'next/navigation';
 
-function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [isSecondarySidebarOpen, setIsSecondarySidebarOpen] = useState(true);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Logic to determine if secondary sidebar should be shown at all
+  // Logic to determine layout width based on secondary sidebar presence
   const showSecondary = !pathname.includes('/shop') && !pathname.includes('/competitions');
-  
-  // Calculate margin based on sidebar state
-  const marginLeft = showSecondary && isSecondarySidebarOpen ? 'ml-[290px]' : 'ml-[70px]';
+  const marginLeft = showSecondary ? 'ml-[290px]' : 'ml-[70px]';
 
   const pageTitle = pathname.split('/').pop() || 'Overview';
 
+  const toggleCollapse = () => setIsCollapsed(!isCollapsed);
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+
   return (
-    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#050505] text-slate-900 dark:text-white font-sans selection:bg-blue-500/30 transition-colors duration-300">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#050505] text-slate-900 dark:text-white font-sans selection:bg-blue-500/30">
       
       {/* Mobile Navigation Drawer */}
       <MobileNav 
@@ -30,41 +30,31 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         onClose={() => setIsMobileMenuOpen(false)}
       />
 
-      {/* Desktop: Primary Rail (Always Visible) */}
-      <PrimarySidebar 
-        isSecondarySidebarOpen={isSecondarySidebarOpen}
-        toggleSecondarySidebar={() => setIsSecondarySidebarOpen(!isSecondarySidebarOpen)}
-        showSecondary={showSecondary}
-      />
-
-      {/* Desktop: Secondary Menu (Conditional) */}
-      {showSecondary && (
-        <SecondarySidebar 
-          isOpen={isSecondarySidebarOpen}
-          onClose={() => setIsSecondarySidebarOpen(false)}
+      {/* Desktop Sidebar - Hidden on Mobile */}
+      <div className="hidden lg:block">
+        <Sidebar 
+          isCollapsed={isCollapsed}
+          toggleCollapse={toggleCollapse}
         />
+      </div>
+
+      {/* Secondary Menu (Conditional) - Hidden on Mobile */}
+      {showSecondary && (
+        <div className="hidden lg:block">
+          <SecondarySidebar />
+        </div>
       )}
 
       {/* Main Content Area */}
-      <div className={`transition-all duration-300 ease-in-out flex flex-col min-h-screen ${marginLeft} lg:${marginLeft}`}>
+      <div className={`transition-all duration-300 ease-in-out flex flex-col min-h-screen lg:${marginLeft}`}>
         <TopNav 
           title={pageTitle}
-          onMobileMenuToggle={() => setIsMobileMenuOpen(true)}
+          onMobileMenuToggle={toggleMobileMenu}
         />
-        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden">
           {children}
         </main>
       </div>
     </div>
-  );
-}
-
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <ThemeProvider>
-      <DashboardLayoutContent>
-        {children}
-      </DashboardLayoutContent>
-    </ThemeProvider>
   );
 }
