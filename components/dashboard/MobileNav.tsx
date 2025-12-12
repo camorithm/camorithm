@@ -15,7 +15,8 @@ import {
   X,
   Sun,
   Moon,
-  LogOut
+  LogOut,
+  BarChart3
 } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 
@@ -30,6 +31,7 @@ export const MobileNav = ({ isOpen, onClose }: MobileNavProps) => {
 
   const navItems = [
     { label: 'Overview', icon: <LayoutDashboard size={20} />, href: '/dashboard', exact: true },
+    { label: 'Analytics', icon: <BarChart3 size={20} />, href: '/dashboard/analytics' },
     { label: 'Journal', icon: <BookOpen size={20} />, href: '/dashboard/journal' },
     { label: 'Payouts', icon: <Wallet size={20} />, href: '/dashboard/payouts' },
     { label: 'Competitions', icon: <Trophy size={20} />, href: '/dashboard/competitions' },

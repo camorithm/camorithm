@@ -11,7 +11,8 @@ import {
   CreditCard,
   FileText,
   Shield,
-  X
+  X,
+  BarChart3
 } from 'lucide-react';
 
 interface SecondarySidebarProps {
@@ -26,6 +27,7 @@ export const SecondarySidebar = ({ isOpen, onClose }: SecondarySidebarProps) => 
   const menus: any = {
     'default': [
       { label: 'Overview', href: '/dashboard', icon: <LayoutDashboard size={16} />, exact: true },
+      { label: 'Analytics', href: '/dashboard/analytics', icon: <BarChart3 size={16} /> },
       { label: 'Journal', href: '/dashboard/journal', icon: <BookOpen size={16} /> },
       { label: 'Payouts', href: '/dashboard/payouts', icon: <Wallet size={16} /> },
     ],
