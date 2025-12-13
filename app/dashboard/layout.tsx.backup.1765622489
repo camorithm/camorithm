@@ -1,0 +1,119 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { Sidebar } from '../../components/dashboard/Sidebar';
+import { SecondarySidebar } from '../../components/dashboard/SecondarySidebar';
+import { TopNav } from '../../components/dashboard/TopNav';
+import { MobileNav } from '../../components/dashboard/MobileNav';
+import { usePathname } from 'next/navigation';
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [primaryCollapsed, setPrimaryCollapsed] = useState(false);
+  const [secondaryCollapsed, setSecondaryCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(true);
+
+  // Handle responsive breakpoint
+  useEffect(() => {
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 1024);
+    };
+    
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
+
+  // Pages without secondary sidebar
+  const showSecondary = !pathname.includes('/shop') && !pathname.includes('/competitions');
+
+  const pageTitle = pathname.split('/').pop() || 'Overview';
+
+  // Toggle primary sidebar with mutual exclusivity
+  const togglePrimary = () => {
+    if (primaryCollapsed) {
+      // Expanding primary -> collapse secondary
+      setPrimaryCollapsed(false);
+      setSecondaryCollapsed(true);
+    } else {
+      // Collapsing primary
+      setPrimaryCollapsed(true);
+    }
+  };
+
+  // Toggle secondary sidebar with mutual exclusivity
+  const toggleSecondary = () => {
+    if (secondaryCollapsed) {
+      // Expanding secondary -> collapse primary
+      setSecondaryCollapsed(false);
+      setPrimaryCollapsed(true);
+    } else {
+      // Collapsing secondary
+      setSecondaryCollapsed(true);
+    }
+  };
+
+  // Calculate padding based on sidebar states
+  const getLeftPadding = () => {
+    if (!isDesktop) return '0px';
+    
+    if (!showSecondary) {
+      // Only primary sidebar (Shop/Competitions pages)
+      return primaryCollapsed ? '80px' : '260px';
+    }
+    
+    // Both sidebars present
+    const primaryWidth = primaryCollapsed ? 80 : 260;
+    const secondaryWidth = secondaryCollapsed ? 60 : 220;
+    
+    return `${primaryWidth + secondaryWidth}px`;
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#050505] text-slate-900 dark:text-white font-sans selection:bg-blue-500/30">
+      
+      {/* Mobile Nav */}
+      <MobileNav 
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+      />
+
+      {/* Main Sidebar - Hidden on mobile */}
+      <div className="hidden lg:block">
+        <Sidebar 
+          isCollapsed={primaryCollapsed}
+          toggleCollapse={togglePrimary}
+        />
+      </div>
+
+      {/* Secondary Sidebar - Hidden on mobile and certain pages */}
+      {showSecondary && (
+        <div className="hidden lg:block">
+          <SecondarySidebar 
+            primaryCollapsed={primaryCollapsed}
+            isCollapsed={secondaryCollapsed}
+            toggleCollapse={toggleSecondary}
+          />
+        </div>
+      )}
+
+      {/* Main Content Area */}
+      <div 
+        className="transition-all duration-300 ease-in-out flex flex-col min-h-screen"
+        style={{
+          paddingLeft: getLeftPadding()
+        }}
+      >
+        <TopNav 
+          title={pageTitle}
+          onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        />
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}

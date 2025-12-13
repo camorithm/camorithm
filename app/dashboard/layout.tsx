@@ -1,40 +1,28 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Sidebar } from '../../components/dashboard/Sidebar';
 import { SecondarySidebar } from '../../components/dashboard/SecondarySidebar';
 import { TopNav } from '../../components/dashboard/TopNav';
-import { MobileNav } from '../../components/dashboard/MobileNav';
 import { usePathname } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [primaryCollapsed, setPrimaryCollapsed] = useState(false);
+  
+  // Sidebar state - DEFAULT: Primary collapsed (80px), Secondary expanded (220px)
+  const [primaryCollapsed, setPrimaryCollapsed] = useState(true);
   const [secondaryCollapsed, setSecondaryCollapsed] = useState(false);
+  
+  // Mobile menu state (for TopNav component)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(true);
 
-  // Handle responsive breakpoint
-  useEffect(() => {
-    const checkDesktop = () => {
-      setIsDesktop(window.innerWidth >= 1024);
-    };
-    
-    checkDesktop();
-    window.addEventListener('resize', checkDesktop);
-    
-    return () => window.removeEventListener('resize', checkDesktop);
-  }, []);
-
-  // Pages without secondary sidebar
   const showSecondary = !pathname.includes('/shop') && !pathname.includes('/competitions');
-
   const pageTitle = pathname.split('/').pop() || 'Overview';
 
-  // Toggle primary sidebar with mutual exclusivity
-  const togglePrimary = () => {
+  // ENFORCED mutual exclusivity
+  const handlePrimaryToggle = () => {
     if (primaryCollapsed) {
-      // Expanding primary -> collapse secondary
+      // Expanding primary -> MUST collapse secondary
       setPrimaryCollapsed(false);
       setSecondaryCollapsed(true);
     } else {
@@ -43,10 +31,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   };
 
-  // Toggle secondary sidebar with mutual exclusivity
-  const toggleSecondary = () => {
+  const handleSecondaryToggle = () => {
     if (secondaryCollapsed) {
-      // Expanding secondary -> collapse primary
+      // Expanding secondary -> MUST collapse primary  
       setSecondaryCollapsed(false);
       setPrimaryCollapsed(true);
     } else {
@@ -55,62 +42,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   };
 
-  // Calculate padding based on sidebar states
-  const getLeftPadding = () => {
-    if (!isDesktop) return '0px';
-    
-    if (!showSecondary) {
-      // Only primary sidebar (Shop/Competitions pages)
-      return primaryCollapsed ? '80px' : '260px';
-    }
-    
-    // Both sidebars present
-    const primaryWidth = primaryCollapsed ? 80 : 260;
-    const secondaryWidth = secondaryCollapsed ? 60 : 220;
-    
-    return `${primaryWidth + secondaryWidth}px`;
-  };
+  // Calculate total left padding
+  const primaryWidth = primaryCollapsed ? 80 : 260;
+  const secondaryWidth = showSecondary ? (secondaryCollapsed ? 60 : 220) : 0;
+  const totalPadding = `${primaryWidth + secondaryWidth}px`;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#050505] text-slate-900 dark:text-white font-sans selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#050505]">
       
-      {/* Mobile Nav */}
-      <MobileNav 
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
+      {/* Primary Sidebar - Only pass props it actually accepts */}
+      <Sidebar 
+        isCollapsed={primaryCollapsed}
+        toggleCollapse={handlePrimaryToggle}
       />
 
-      {/* Main Sidebar - Hidden on mobile */}
-      <div className="hidden lg:block">
-        <Sidebar 
-          isCollapsed={primaryCollapsed}
-          toggleCollapse={togglePrimary}
-        />
-      </div>
-
-      {/* Secondary Sidebar - Hidden on mobile and certain pages */}
+      {/* Secondary Sidebar - CONDITIONAL */}
       {showSecondary && (
-        <div className="hidden lg:block">
-          <SecondarySidebar 
-            primaryCollapsed={primaryCollapsed}
-            isCollapsed={secondaryCollapsed}
-            toggleCollapse={toggleSecondary}
-          />
-        </div>
+        <SecondarySidebar 
+          primaryCollapsed={primaryCollapsed}
+          isCollapsed={secondaryCollapsed}
+          toggleCollapse={handleSecondaryToggle}
+        />
       )}
 
-      {/* Main Content Area */}
-      <div 
-        className="transition-all duration-300 ease-in-out flex flex-col min-h-screen"
-        style={{
-          paddingLeft: getLeftPadding()
-        }}
-      >
+      {/* Main Content - Padded by total sidebar width */}
+      <div style={{ paddingLeft: totalPadding }} className="transition-all duration-300">
         <TopNav 
           title={pageTitle}
           onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         />
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden">
+        <main className="p-8">
           {children}
         </main>
       </div>
