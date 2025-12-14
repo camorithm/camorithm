@@ -10,20 +10,10 @@ import {
   Settings, 
   LineChart, 
   GraduationCap,
-  PanelLeftOpen
+  Zap
 } from 'lucide-react';
 
-interface PrimarySidebarProps {
-  isSecondarySidebarOpen: boolean;
-  toggleSecondarySidebar: () => void;
-  showSecondary: boolean;
-}
-
-export const PrimarySidebar = ({ 
-  isSecondarySidebarOpen, 
-  toggleSecondarySidebar,
-  showSecondary 
-}: PrimarySidebarProps) => {
+export const PrimarySidebar = () => {
   const pathname = usePathname();
 
   // Helper to determine active root section
@@ -34,49 +24,44 @@ export const PrimarySidebar = ({
   };
 
   return (
-    <aside className="fixed top-0 left-0 h-screen w-[70px] bg-[#050505] dark:bg-[#050505] border-r border-white/10 dark:border-white/10 hidden lg:flex flex-col items-center py-6 z-50">
+    <aside className="fixed top-0 left-0 h-screen w-[70px] bg-[#050505] border-r border-white/10 flex flex-col items-center py-6 z-50">
       
       {/* 1. BRAND LOGO */}
-      <Link href="/" className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold font-mono text-xl shadow-lg shadow-blue-500/20 mb-8 hover:scale-105 transition-transform">
+      <Link href="/" className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold font-mono text-xl shadow-lg shadow-blue-500/20 mb-8">
         P
       </Link>
 
-      {/* 2. SECONDARY SIDEBAR TOGGLE (only show when secondary should exist but is closed) */}
-      {showSecondary && !isSecondarySidebarOpen && (
-        <button
-          onClick={toggleSecondarySidebar}
-          className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-all mb-4 group relative"
-          title="Open sidebar"
-        >
-          <PanelLeftOpen size={22} />
-          {/* Tooltip */}
-          <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap border border-white/10 shadow-xl">
-            Open Sidebar
-            <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
-          </div>
-        </button>
-      )}
-
-      {/* 3. MAIN MODULES */}
+      {/* 2. MAIN MODULES */}
       <nav className="flex-1 w-full flex flex-col items-center gap-4">
         <RailItem 
           icon={<LayoutDashboard size={22} />} 
           label="Dashboard" 
           href="/dashboard" 
-          active={isActive('/dashboard') && !pathname.includes('/dashboard/shop') && !pathname.includes('/dashboard/competitions') && !pathname.includes('/dashboard/settings')} 
+          active={isActive('/dashboard') && !pathname.includes('/dashboard/shop') && !pathname.includes('/dashboard/competitions') && !pathname.includes('/dashboard/settings') && !pathname.includes('/dashboard/features')} 
         />
+        
+        <RailItem 
+          icon={<Zap size={22} />} 
+          label="Features" 
+          href="/dashboard/features" 
+          active={pathname.includes('/dashboard/features')}
+          badge="New"
+        />
+        
         <RailItem 
           icon={<Trophy size={22} />} 
           label="Competitions" 
           href="/dashboard/competitions" 
           active={pathname.includes('/dashboard/competitions')} 
         />
+        
         <RailItem 
           icon={<LineChart size={22} />} 
           label="WebTrader" 
           href="#" 
           active={false} 
         />
+        
         <RailItem 
           icon={<ShoppingCart size={22} />} 
           label="Shop" 
@@ -85,7 +70,7 @@ export const PrimarySidebar = ({
         />
       </nav>
 
-      {/* 4. BOTTOM ACTIONS */}
+      {/* 3. BOTTOM ACTIONS */}
       <div className="flex flex-col gap-4 mb-4">
         <RailItem 
           icon={<GraduationCap size={22} />} 
@@ -107,7 +92,7 @@ export const PrimarySidebar = ({
   );
 };
 
-const RailItem = ({ icon, label, active, href }: any) => (
+const RailItem = ({ icon, label, active, href, badge }: any) => (
   <Link 
     href={href}
     className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all group relative ${
@@ -117,10 +102,20 @@ const RailItem = ({ icon, label, active, href }: any) => (
     }`}
   >
     {icon}
+    
+    {/* Badge for new items */}
+    {badge && (
+      <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#050505] animate-pulse"></div>
+    )}
+    
     {/* Tooltip */}
-    <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap border border-white/10 shadow-xl">
+    <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap border border-white/10 flex items-center gap-2">
       {label}
-      <div className="absolute left-0 top-1/2 -translate-x-1 -translate-y-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
+      {badge && (
+        <span className="px-1.5 py-0.5 bg-blue-500 text-white text-[9px] font-bold rounded">
+          {badge}
+        </span>
+      )}
     </div>
   </Link>
 );
