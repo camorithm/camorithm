@@ -1,38 +1,32 @@
-// File: app/auth/register/page.tsx
+// File: app/auth/login/page.tsx
 'use client'
 
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { Lock, Mail, User, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Lock, Mail, AlertCircle, LogIn } from 'lucide-react'
 
-
+// No @/ alias needed - TypeScript can infer the types
 type Database = any
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const router = useRouter()
   const supabase = createClientComponentClient<Database>()
-  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleEmailSignup = async (e: React.FormEvent) => {
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: {
-          data: {
-            name,
-          },
-        },
       })
 
       if (error) throw error
@@ -40,13 +34,13 @@ export default function RegisterPage() {
       router.push('/dashboard')
       router.refresh()
     } catch (error: any) {
-      setError(error.message || 'Failed to create account')
+      setError(error.message || 'Invalid email or password')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleGoogleSignup = async () => {
+  const handleGoogleLogin = async () => {
     setLoading(true)
     setError('')
 
@@ -69,54 +63,27 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none"></div>
       
-      <div className="relative w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="hidden lg:flex flex-col justify-center text-white">
-          <h2 className="text-4xl font-bold mb-6">Trade Our Capital.<br/>Keep The Profits.</h2>
-          <div className="space-y-4">
-            <BenefitRow icon={<CheckCircle2 />} text="Get funded up to $200,000" />
-            <BenefitRow icon={<CheckCircle2 />} text="90% profit split on all wins" />
-            <BenefitRow icon={<CheckCircle2 />} text="Instant crypto payouts" />
-            <BenefitRow icon={<CheckCircle2 />} text="No time limits on challenges" />
-          </div>
-        </div>
-
+      <div className="relative w-full max-w-md">
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8">
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-blue-600 rounded-xl flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4 shadow-lg shadow-blue-500/50">
               P
             </div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Create Account</h1>
-            <p className="text-slate-500">Start your funded trading journey</p>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Welcome Back</h1>
+            <p className="text-slate-500">Sign in to your PropFirm account</p>
           </div>
 
           {error && (
             <div className="mb-6 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-4 flex items-start gap-3">
               <AlertCircle className="text-red-600 dark:text-red-400 shrink-0 mt-0.5" size={20} />
               <div>
-                <h4 className="text-sm font-bold text-red-700 dark:text-red-400">Registration Failed</h4>
+                <h4 className="text-sm font-bold text-red-700 dark:text-red-400">Login Failed</h4>
                 <p className="text-xs text-red-600 dark:text-red-400/80 mt-1">{error}</p>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleEmailSignup} className="space-y-4 mb-6">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="John Doe"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  required
-                />
-              </div>
-            </div>
-
+          <form onSubmit={handleEmailLogin} className="space-y-4 mb-6">
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                 Email Address
@@ -147,10 +114,8 @@ export default function RegisterPage() {
                   placeholder="••••••••"
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                   required
-                  minLength={6}
                 />
               </div>
-              <p className="text-xs text-slate-500 mt-1">Must be at least 6 characters</p>
             </div>
 
             <button
@@ -161,7 +126,9 @@ export default function RegisterPage() {
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
               ) : (
-                'Create Account'
+                <>
+                  <LogIn size={18} /> Sign In
+                </>
               )}
             </button>
           </form>
@@ -176,7 +143,7 @@ export default function RegisterPage() {
           </div>
 
           <button
-            onClick={handleGoogleSignup}
+            onClick={handleGoogleLogin}
             disabled={loading}
             className="w-full py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-semibold rounded-xl transition-all flex items-center justify-center gap-3"
           >
@@ -190,9 +157,9 @@ export default function RegisterPage() {
           </button>
 
           <p className="text-center text-sm text-slate-500 mt-6">
-            Already have an account?{' '}
-            <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-semibold">
-              Sign In
+            Don't have an account?{' '}
+            <Link href="/auth/register" className="text-blue-600 hover:text-blue-700 font-semibold">
+              Sign Up
             </Link>
           </p>
         </div>
@@ -200,12 +167,3 @@ export default function RegisterPage() {
     </div>
   )
 }
-
-const BenefitRow = ({ icon, text }: any) => (
-  <div className="flex items-center gap-3">
-    <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400">
-      {icon}
-    </div>
-    <span className="text-lg">{text}</span>
-  </div>
-)
