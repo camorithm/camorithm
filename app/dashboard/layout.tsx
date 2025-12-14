@@ -1,77 +1,62 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Sidebar } from '../../components/dashboard/Sidebar';
+import React, { useState, useEffect } from 'react';
+import { PrimarySidebar } from '../../components/dashboard/PrimarySidebar';
 import { SecondarySidebar } from '../../components/dashboard/SecondarySidebar';
 import { TopNav } from '../../components/dashboard/TopNav';
 import { usePathname } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  
-  // Sidebar state - DEFAULT: Primary collapsed (80px), Secondary expanded (220px)
-  const [primaryCollapsed, setPrimaryCollapsed] = useState(true);
-  const [secondaryCollapsed, setSecondaryCollapsed] = useState(false);
-  
-  // Mobile menu state (for TopNav component)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
+  // Initialize theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    setIsDark(shouldBeDark);
+    if (shouldBeDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newTheme = !isDark;
+    setIsDark(newTheme);
+    
+    if (newTheme) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
+
+  // Logic to determine layout width based on secondary sidebar presence
+  // Shop and Competitions hide the secondary sidebar to give more room
   const showSecondary = !pathname.includes('/shop') && !pathname.includes('/competitions');
+  const marginLeft = showSecondary ? 'ml-[290px]' : 'ml-[70px]';
+
   const pageTitle = pathname.split('/').pop() || 'Overview';
 
-  // ENFORCED mutual exclusivity
-  const handlePrimaryToggle = () => {
-    if (primaryCollapsed) {
-      // Expanding primary -> MUST collapse secondary
-      setPrimaryCollapsed(false);
-      setSecondaryCollapsed(true);
-    } else {
-      // Collapsing primary
-      setPrimaryCollapsed(true);
-    }
-  };
-
-  const handleSecondaryToggle = () => {
-    if (secondaryCollapsed) {
-      // Expanding secondary -> MUST collapse primary  
-      setSecondaryCollapsed(false);
-      setPrimaryCollapsed(true);
-    } else {
-      // Collapsing secondary
-      setSecondaryCollapsed(true);
-    }
-  };
-
-  // Calculate total left padding
-  const primaryWidth = primaryCollapsed ? 80 : 260;
-  const secondaryWidth = showSecondary ? (secondaryCollapsed ? 60 : 220) : 0;
-  const totalPadding = `${primaryWidth + secondaryWidth}px`;
-
   return (
-    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#050505]">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#050505] text-slate-900 dark:text-white font-sans selection:bg-blue-500/30">
       
-      {/* Primary Sidebar - Only pass props it actually accepts */}
-      <Sidebar 
-        isCollapsed={primaryCollapsed}
-        toggleCollapse={handlePrimaryToggle}
-      />
+      {/* 1. Primary Rail (Always Visible) */}
+      <PrimarySidebar />
 
-      {/* Secondary Sidebar - CONDITIONAL */}
-      {showSecondary && (
-        <SecondarySidebar 
-          primaryCollapsed={primaryCollapsed}
-          isCollapsed={secondaryCollapsed}
-          toggleCollapse={handleSecondaryToggle}
-        />
-      )}
+      {/* 2. Secondary Menu (Conditional) */}
+      {showSecondary && <SecondarySidebar />}
 
-      {/* Main Content - Padded by total sidebar width */}
-      <div style={{ paddingLeft: totalPadding }} className="transition-all duration-300">
-        <TopNav 
-          title={pageTitle}
-          onMobileMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        />
-        <main className="p-8">
+      {/* 3. Main Content Area */}
+      <div className={`transition-all duration-300 ease-in-out flex flex-col min-h-screen ${marginLeft}`}>
+        <TopNav title={pageTitle} />
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden">
           {children}
         </main>
       </div>
