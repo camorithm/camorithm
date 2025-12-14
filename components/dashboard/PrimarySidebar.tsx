@@ -10,7 +10,7 @@ import {
   Settings, 
   LineChart, 
   GraduationCap,
-  Zap
+  TrendingUp
 } from 'lucide-react';
 
 export const PrimarySidebar = () => {
@@ -37,31 +37,26 @@ export const PrimarySidebar = () => {
           icon={<LayoutDashboard size={22} />} 
           label="Dashboard" 
           href="/dashboard" 
-          active={isActive('/dashboard') && !pathname.includes('/dashboard/shop') && !pathname.includes('/dashboard/competitions') && !pathname.includes('/dashboard/settings') && !pathname.includes('/dashboard/features')} 
+          active={isActive('/dashboard') && !pathname.includes('/performance') && !pathname.includes('/shop') && !pathname.includes('/competitions') && !pathname.includes('/settings')} 
         />
-        
         <RailItem 
-          icon={<Zap size={22} />} 
-          label="Features" 
-          href="/dashboard/features" 
-          active={pathname.includes('/dashboard/features')}
-          badge="New"
+          icon={<TrendingUp size={22} />} 
+          label="Performance" 
+          href="/dashboard/performance" 
+          active={pathname.includes('/dashboard/performance')} 
         />
-        
         <RailItem 
           icon={<Trophy size={22} />} 
           label="Competitions" 
           href="/dashboard/competitions" 
           active={pathname.includes('/dashboard/competitions')} 
         />
-        
         <RailItem 
           icon={<LineChart size={22} />} 
           label="WebTrader" 
           href="#" 
           active={false} 
         />
-        
         <RailItem 
           icon={<ShoppingCart size={22} />} 
           label="Shop" 
@@ -92,7 +87,7 @@ export const PrimarySidebar = () => {
   );
 };
 
-const RailItem = ({ icon, label, active, href, badge }: any) => (
+const RailItem = ({ icon, label, active, href }: any) => (
   <Link 
     href={href}
     className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all group relative ${
@@ -102,20 +97,9 @@ const RailItem = ({ icon, label, active, href, badge }: any) => (
     }`}
   >
     {icon}
-    
-    {/* Badge for new items */}
-    {badge && (
-      <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border-2 border-[#050505] animate-pulse"></div>
-    )}
-    
     {/* Tooltip */}
-    <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap border border-white/10 flex items-center gap-2">
+    <div className="absolute left-full ml-4 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap border border-white/10">
       {label}
-      {badge && (
-        <span className="px-1.5 py-0.5 bg-blue-500 text-white text-[9px] font-bold rounded">
-          {badge}
-        </span>
-      )}
     </div>
   </Link>
 );

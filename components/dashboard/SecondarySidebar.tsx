@@ -11,7 +11,8 @@ import {
   CreditCard,
   FileText,
   Shield,
-  Zap
+  Zap,
+  TrendingUp
 } from 'lucide-react';
 
 export const SecondarySidebar = () => {
@@ -21,6 +22,7 @@ export const SecondarySidebar = () => {
   const menus: any = {
     'default': [
       { label: 'Overview', href: '/dashboard', icon: <LayoutDashboard size={16} />, exact: true },
+      { label: 'Performance', href: '/dashboard/performance', icon: <TrendingUp size={16} /> },
       { label: 'Journal', href: '/dashboard/journal', icon: <BookOpen size={16} /> },
       { label: 'Payouts', href: '/dashboard/payouts', icon: <Wallet size={16} /> },
       { label: 'Features', href: '/dashboard/features', icon: <Zap size={16} />, badge: 'New' },
@@ -66,7 +68,7 @@ export const SecondarySidebar = () => {
             <Link 
               key={item.href}
               href={item.href}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors relative group ${
+              className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 isActive 
                   ? 'bg-white/5 text-white font-medium' 
                   : 'text-slate-500 hover:text-slate-300 hover:bg-white/[0.02]'
