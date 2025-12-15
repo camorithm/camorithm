@@ -1,38 +1,26 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Menu, X, Globe, ChevronDown, MessageCircle, LayoutDashboard, UserPlus } from 'lucide-react';
 
 const styles = {
 h1: "font-['Space_Grotesk'] font-bold tracking-tight",
 navLink: "flex items-center gap-1 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200",
-// Updated Primary Button for Sign Up
 btnPrimary: "bg-[#007aff] hover:bg-[#0062cc] text-white font-semibold rounded-full px-6 py-2.5 text-sm transition-all duration-300 shadow-[0_0_20px_rgba(0,122,255,0.3)] hover:shadow-[0_0_30px_rgba(0,122,255,0.5)] transform hover:-translate-y-0.5",
-// Updated Secondary Button for Dashboard
 btnSecondary: "text-white hover:text-[#007aff] font-medium text-sm px-4 transition-colors flex items-center gap-2",
 };
 
 const Navbar = () => {
 const [isOpen, setIsOpen] = useState(false);
-const [scrolled, setScrolled] = useState(false);
-
-// Add glass effect on scroll
-useEffect(() => {
-  const handleScroll = () => setScrolled(window.scrollY > 20);
-  window.addEventListener('scroll', handleScroll);
-  return () => window.removeEventListener('scroll', handleScroll);
-}, []);
 
 return (
   <>
-    <nav 
-      className={`fixed w-full z-50 transition-all duration-300 ${
-        scrolled || isOpen 
-          ? 'bg-[#0a0b0d]/90 backdrop-blur-xl border-b border-white/10' 
-          : 'bg-transparent border-b border-transparent'
-      }`}
-    >
+    {/* 
+      UPDATED: Permanent background color and border. 
+      Removed scroll event listener logic since it's now always dark.
+    */}
+    <nav className="fixed w-full z-50 bg-[#0a0b0d] border-b border-white/10 transition-all duration-300">
       <div className="max-w-[1400px] mx-auto px-6">
         <div className="flex items-center justify-between h-20">
           
