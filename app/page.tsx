@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Navbar from '../components/Navbar'; 
 import Footer from '../components/Footer';
+import Link from 'next/link';
 import { 
 Check, 
 BarChart2, 
@@ -12,7 +13,9 @@ Clock,
 ArrowRight,
 Star,
 Shield,
-Trophy
+Trophy,
+Globe,
+Smartphone
 } from 'lucide-react';
 
 // --- STYLES & CONFIG ---
@@ -46,17 +49,19 @@ const MatrixRow = ({ label, value, isGreen, isRed }: { label: string, value: str
 const Hero = () => {
 return (
   <section className="relative pt-32 pb-20 lg:pt-40 lg:pb-32 bg-[#0a0b0d] overflow-hidden">
-    {/* IMPROVEMENT: Grid Background Pattern */}
+    {/* Grid Background Pattern */}
     <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
     
-    {/* Background Gradients - Added a secondary purple glow for depth */}
+    {/* Background Gradients */}
     <div className="absolute top-[-10%] left-1/4 w-[500px] h-[500px] bg-[#007aff]/20 rounded-full blur-[120px] pointer-events-none" />
     <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#7c3aed]/10 rounded-full blur-[120px] pointer-events-none" />
     
     {/* Noise Overlay */}
     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay"></div>
 
+    {/* Container: Matches Header Width */}
     <div className="relative max-w-[1400px] mx-auto px-6 text-center z-10">
+      
       {/* Badge */}
       <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-8 hover:bg-white/10 transition-colors cursor-pointer group backdrop-blur-md">
         <span className="relative flex h-2 w-2">
@@ -81,22 +86,20 @@ return (
       </p>
 
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-24">
-        <button className={styles.btnPrimary}>
+        <Link href="/challenges" className={styles.btnPrimary}>
           Start Challenge <ArrowRight className="ml-2 w-4 h-4" />
-        </button>
-        <button className={styles.btnSecondary}>
+        </Link>
+        <Link href="/dashboard" className={styles.btnSecondary}>
           View Dashboard
-        </button>
+        </Link>
       </div>
 
-      {/* 3D Dashboard Mockup - Enhanced with better glassmorphism */}
-      <div className="relative mx-auto max-w-5xl perspective-[2000px] group">
-        <div className="relative bg-[#0f1115]/90 backdrop-blur-xl border border-white/10 rounded-t-2xl shadow-2xl overflow-hidden h-[350px] md:h-[500px] transform rotate-x-[15deg] group-hover:rotate-x-[5deg] transition-transform duration-700 ease-out border-b-0 shadow-blue-900/20">
-           
-           {/* Reflection Gradient */}
+      {/* 3D Dashboard Mockup */}
+      <div className="relative mx-auto max-w-6xl perspective-[2000px] group">
+        <div className="relative bg-[#0f1115]/90 backdrop-blur-xl border border-white/10 rounded-t-2xl shadow-2xl overflow-hidden h-[350px] md:h-[600px] transform rotate-x-[15deg] group-hover:rotate-x-[5deg] transition-transform duration-700 ease-out border-b-0 shadow-blue-900/20">
            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-
-           {/* UI Header */}
+           
+           {/* Fake Browser Header */}
            <div className="h-14 bg-[#1a1d24]/50 border-b border-white/5 flex items-center px-6 justify-between">
               <div className="flex gap-2">
                  <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
@@ -105,39 +108,23 @@ return (
               </div>
               <div className="flex items-center gap-2 px-3 py-1 bg-black/20 rounded-md border border-white/5">
                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                 <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">MetaTrader 5 • Live</div>
+                 <div className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">PROPFIRM • Dashboard</div>
               </div>
            </div>
            
-           {/* UI Chart Area */}
-           <div className="p-8 relative h-full">
-              {/* Floating Metrics */}
-              <div className="absolute top-8 left-8 p-5 bg-[#13151a]/90 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl z-20 flex gap-6">
-                  <div>
-                      <div className="text-xs text-gray-500 font-bold uppercase mb-1">Equity</div>
-                      <div className="text-3xl font-mono text-white font-bold tracking-tight">$104,250.00</div>
-                  </div>
-                  <div className="flex flex-col justify-end items-end">
-                     <div className="text-green-500 text-sm font-mono font-bold bg-green-500/10 px-2 py-1 rounded-lg flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3" /> +4.2%
-                     </div>
-                  </div>
-              </div>
-
-              {/* Enhanced Graph Line with Glow */}
-              <svg className="absolute bottom-0 left-0 w-full h-72 z-10" viewBox="0 0 100 20" preserveAspectRatio="none">
+           {/* Chart Content */}
+           <div className="p-8 relative h-full flex flex-col items-center justify-center">
+              <div className="text-gray-500 font-mono text-sm mb-4">LIVE MARKET DATA FEED</div>
+              {/* Abstract Graph Line */}
+              <svg className="w-full h-full max-h-[400px]" viewBox="0 0 1000 400" preserveAspectRatio="none">
                   <defs>
-                      <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
+                      <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
                           <stop offset="0%" stopColor="#007aff" stopOpacity="0.2" />
                           <stop offset="100%" stopColor="#007aff" stopOpacity="0" />
                       </linearGradient>
-                      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="1" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                      </filter>
                   </defs>
-                  <path d="M0 20 C 15 18, 30 19, 40 12 S 60 5, 75 8 S 90 2, 100 6 V 20 H 0 Z" fill="url(#gradient)" />
-                  <path d="M0 20 C 15 18, 30 19, 40 12 S 60 5, 75 8 S 90 2, 100 6" fill="none" stroke="#007aff" strokeWidth="0.5" filter="url(#glow)" />
+                  <path d="M0 350 C 100 340, 200 360, 300 250 S 500 100, 700 150 S 900 50, 1000 100 V 400 H 0 Z" fill="url(#chartGradient)" />
+                  <path d="M0 350 C 100 340, 200 360, 300 250 S 500 100, 700 150 S 900 50, 1000 100" fill="none" stroke="#007aff" strokeWidth="3" />
               </svg>
            </div>
         </div>
@@ -148,7 +135,6 @@ return (
 };
 
 const Testimonials = () => {
-  // Duplicating array for smoother marquee loop
   const reviews = [
       { name: "Alex M.", text: "The spread on Gold is insane and I got my payout via USDT immediately." },
       { name: "Sarah K.", text: "Passed my 100k challenge in 5 days. Dashboard is super clean." },
@@ -158,6 +144,7 @@ const Testimonials = () => {
 
   return (
       <section className="py-20 border-y border-white/5 bg-[#0d0f12] overflow-hidden">
+          {/* Container: Matches Header Width */}
           <div className="max-w-[1400px] mx-auto px-6 mb-12 flex flex-col md:flex-row justify-between items-end gap-6">
               <div>
                   <h2 className={`text-3xl text-white mb-2 ${styles.h2}`}>Traders Trust Us</h2>
@@ -176,7 +163,6 @@ const Testimonials = () => {
               </a>
           </div>
 
-          {/* Scrolling Marquee */}
           <div className="relative w-full">
               <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0d0f12] to-transparent z-10 pointer-events-none"></div>
               <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0d0f12] to-transparent z-10 pointer-events-none"></div>
@@ -206,7 +192,8 @@ const Testimonials = () => {
 const BentoFeatures = () => {
 return (
   <section className="py-32 bg-[#0a0b0d]">
-     <div className="max-w-[1200px] mx-auto px-6">
+     {/* Container: Matches Header Width (Was 1200px, now 1400px) */}
+     <div className="max-w-[1400px] mx-auto px-6">
         <div className="text-center mb-16">
            <h2 className={`text-3xl md:text-5xl text-white mb-6 ${styles.h2}`}>Built for Serious Traders</h2>
            <p className="text-gray-400">Everything you need to succeed, nothing you don't.</p>
@@ -291,7 +278,8 @@ return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none" />
     <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
 
-    <div className="max-w-[1200px] mx-auto px-6 relative z-10">
+    {/* Container: Matches Header Width (Was 1200px, now 1400px) */}
+    <div className="max-w-[1400px] mx-auto px-6 relative z-10">
       <div className="text-center mb-12">
         <h2 className={`text-4xl md:text-5xl text-white mb-6 ${styles.h2}`}>Select Account Size</h2>
         <p className="text-gray-400 text-lg">Refundable fee. No recurring charges. Pure opportunity.</p>
@@ -321,7 +309,7 @@ return (
       </div>
 
       {/* Pricing Card */}
-      <div className="max-w-4xl mx-auto bg-[#13151a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative group">
+      <div className="max-w-5xl mx-auto bg-[#13151a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative group">
         {/* Active Border Glow */}
         <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#007aff]/30 rounded-3xl transition-colors pointer-events-none duration-500"></div>
         
@@ -364,9 +352,9 @@ return (
                 </div>
             </div>
             
-            <button className={`${styles.btnPrimary} w-full !text-lg !py-4 shadow-blue-500/20 hover:shadow-blue-500/40`}>
+            <Link href="/challenges" className={`${styles.btnPrimary} w-full !text-lg !py-4 shadow-blue-500/20 hover:shadow-blue-500/40`}>
               Start Challenge
-            </button>
+            </Link>
           </div>
         </div>
       </div>
