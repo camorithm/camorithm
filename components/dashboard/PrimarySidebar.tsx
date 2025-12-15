@@ -10,7 +10,7 @@ import {
   Settings, 
   LineChart, 
   GraduationCap,
-  TrendingUp
+  Link2  // Icon for Platforms
 } from 'lucide-react';
 
 export const PrimarySidebar = () => {
@@ -37,13 +37,7 @@ export const PrimarySidebar = () => {
           icon={<LayoutDashboard size={22} />} 
           label="Dashboard" 
           href="/dashboard" 
-          active={isActive('/dashboard') && !pathname.includes('/performance') && !pathname.includes('/shop') && !pathname.includes('/competitions') && !pathname.includes('/settings')} 
-        />
-        <RailItem 
-          icon={<TrendingUp size={22} />} 
-          label="Performance" 
-          href="/dashboard/performance" 
-          active={pathname.includes('/dashboard/performance')} 
+          active={isActive('/dashboard') && !pathname.includes('/dashboard/shop') && !pathname.includes('/dashboard/competitions') && !pathname.includes('/dashboard/settings') && !pathname.includes('/dashboard/platforms')} 
         />
         <RailItem 
           icon={<Trophy size={22} />} 
@@ -62,6 +56,13 @@ export const PrimarySidebar = () => {
           label="Shop" 
           href="/dashboard/shop" 
           active={pathname.includes('/dashboard/shop')} 
+        />
+        {/* NEW: Platforms Link */}
+        <RailItem 
+          icon={<Link2 size={22} />} 
+          label="Platforms" 
+          href="/dashboard/platforms" 
+          active={pathname.includes('/dashboard/platforms')} 
         />
       </nav>
 
