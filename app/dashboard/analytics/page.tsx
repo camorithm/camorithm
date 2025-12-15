@@ -1,347 +1,381 @@
 'use client';
 
-import React, { useState } from 'react';
-import { 
-  AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
-} from 'recharts';
-import { 
-  TrendingUp, TrendingDown, Calendar, Target, Percent, 
-  DollarSign, ArrowUpRight, ArrowDownRight, Activity,
-  Filter, Download, Calendar as CalendarIcon
-} from 'lucide-react';
-
-// --- MOCK DATA ---
-const equityData = [
-  { date: 'Week 1', equity: 100000, balance: 100000, drawdown: 0 },
-  { date: 'Week 2', equity: 102500, balance: 101800, drawdown: -500 },
-  { date: 'Week 3', equity: 101800, balance: 101200, drawdown: -1200 },
-  { date: 'Week 4', equity: 104200, balance: 103500, drawdown: -300 },
-  { date: 'Week 5', equity: 106800, balance: 105900, drawdown: 0 },
-  { date: 'Week 6', equity: 105200, balance: 104800, drawdown: -1600 },
-  { date: 'Week 7', equity: 108500, balance: 107200, drawdown: -200 },
-  { date: 'Week 8', equity: 110300, balance: 109500, drawdown: 0 },
-];
-
-const winRateData = [
-  { name: 'Wins', value: 68, color: '#10b981' },
-  { name: 'Losses', value: 32, color: '#ef4444' },
-];
-
-const profitBySymbol = [
-  { symbol: 'EURUSD', profit: 4250, trades: 45, winRate: 71 },
-  { symbol: 'GBPUSD', profit: 2800, trades: 32, winRate: 65 },
-  { symbol: 'XAUUSD', profit: 3200, trades: 28, winRate: 75 },
-  { symbol: 'BTCUSD', profit: 1900, trades: 15, winRate: 60 },
-  { symbol: 'US30', profit: 1600, trades: 22, winRate: 68 },
-];
-
-const timeOfDayData = [
-  { hour: '00-04', profit: 320, trades: 5 },
-  { hour: '04-08', profit: -180, trades: 8 },
-  { hour: '08-12', profit: 2400, trades: 42 },
-  { hour: '12-16', profit: 3100, trades: 38 },
-  { hour: '16-20', profit: 2800, trades: 35 },
-  { hour: '20-24', profit: 880, trades: 12 },
-];
-
-const dailyPnL = [
-  { day: 'Mon', pnl: 850 },
-  { day: 'Tue', pnl: -320 },
-  { day: 'Wed', pnl: 1200 },
-  { day: 'Thu', pnl: 640 },
-  { day: 'Fri', pnl: 1420 },
-  { day: 'Sat', pnl: 0 },
-  { day: 'Sun', pnl: 0 },
-];
-
-const drawdownHistory = [
-  { date: 'W1', drawdown: 0 },
-  { date: 'W2', drawdown: -500 },
-  { date: 'W3', drawdown: -1200 },
-  { date: 'W4', drawdown: -300 },
-  { date: 'W5', drawdown: 0 },
-  { date: 'W6', drawdown: -1600 },
-  { date: 'W7', drawdown: -200 },
-  { date: 'W8', drawdown: 0 },
-];
+import React, { useMemo } from 'react';
+import { BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { TrendingUp, TrendingDown, Target, Calendar, Clock, Award, DollarSign } from 'lucide-react';
+import { useTrades } from '../../../hooks/useTrades';
 
 export default function AnalyticsPage() {
-  const [timeRange, setTimeRange] = useState('1M');
+  const { trades, loading } = useTrades();
+
+  // Calculate all analytics
+  const analytics = useMemo(() => {
+    if (!trades || trades.length === 0) return null;
+
+    const winTrades = trades.filter(t => t.status === 'win');
+    const lossTrades = trades.filter(t => t.status === 'loss');
+    
+    // 1. Win Rate by Symbol
+    const symbolStats = trades.reduce((acc: any, trade) => {
+      if (!acc[trade.symbol]) {
+        acc[trade.symbol] = { wins: 0, losses: 0, total: 0, profit: 0 };
+      }
+      acc[trade.symbol].total++;
+      // Use camelCase for TypeScript
+      acc[trade.symbol].profit += (trade as any).netProfit || 0;
+      if (trade.status === 'win') acc[trade.symbol].wins++;
+      if (trade.status === 'loss') acc[trade.symbol].losses++;
+      return acc;
+    }, {});
+
+    const winRateBySymbol = Object.entries(symbolStats).map(([symbol, stats]: [string, any]) => ({
+      symbol,
+      winRate: (stats.wins / stats.total) * 100,
+      trades: stats.total,
+      profit: stats.profit,
+    })).sort((a, b) => b.winRate - a.winRate);
+
+    // 2. Win Rate by Time of Day (24 hours)
+    const hourStats = Array.from({ length: 24 }, (_, hour) => {
+      const hourTrades = trades.filter(t => {
+        // Handle both camelCase and snake_case
+        const openTime = (t as any).openTime || (t as any).open_time;
+        const tradeHour = new Date(openTime).getHours();
+        return tradeHour === hour;
+      });
+      const wins = hourTrades.filter(t => t.status === 'win').length;
+      return {
+        hour: `${hour.toString().padStart(2, '0')}:00`,
+        winRate: hourTrades.length > 0 ? (wins / hourTrades.length) * 100 : 0,
+        trades: hourTrades.length,
+      };
+    });
+
+    // 3. Win Rate by Day of Week
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayStats = Array.from({ length: 7 }, (_, day) => {
+      const dayTrades = trades.filter(t => {
+        const openTime = (t as any).openTime || (t as any).open_time;
+        return new Date(openTime).getDay() === day;
+      });
+      const wins = dayTrades.filter(t => t.status === 'win').length;
+      return {
+        day: dayNames[day],
+        winRate: dayTrades.length > 0 ? (wins / dayTrades.length) * 100 : 0,
+        trades: dayTrades.length,
+      };
+    }).filter(d => d.trades > 0);
+
+    // 4. R-Multiple Distribution (simplified - using profit ranges)
+    const rMultiples = trades.map(t => {
+      const profit = (t as any).netProfit || 0;
+      if (profit > 2000) return '3R+';
+      if (profit > 1000) return '2R-3R';
+      if (profit > 500) return '1R-2R';
+      if (profit > 0) return '0-1R';
+      if (profit > -500) return '-1R-0';
+      if (profit > -1000) return '-2R--1R';
+      return '-3R-';
+    });
+
+    const rMultipleDistribution = ['3R+', '2R-3R', '1R-2R', '0-1R', '-1R-0', '-2R--1R', '-3R-'].map(range => ({
+      range,
+      count: rMultiples.filter(r => r === range).length,
+    }));
+
+    // 5. Monthly Performance
+    const monthlyStats = trades.reduce((acc: any, trade) => {
+      const openTime = (trade as any).openTime || (trade as any).open_time;
+      const month = new Date(openTime).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+      if (!acc[month]) {
+        acc[month] = { month, profit: 0, trades: 0, wins: 0 };
+      }
+      acc[month].profit += (trade as any).netProfit || 0;
+      acc[month].trades++;
+      if (trade.status === 'win') acc[month].wins++;
+      return acc;
+    }, {});
+
+    const monthlyPerformance = Object.values(monthlyStats)
+      .sort((a: any, b: any) => new Date(a.month).getTime() - new Date(b.month).getTime());
+
+    // 6. Equity Curve
+    const sortedTrades = [...trades].sort((a, b) => {
+      const aTime = (a as any).closeTime || (a as any).close_time || (a as any).openTime || (a as any).open_time;
+      const bTime = (b as any).closeTime || (b as any).close_time || (b as any).openTime || (b as any).open_time;
+      return new Date(aTime).getTime() - new Date(bTime).getTime();
+    });
+
+    let runningEquity = 100000; // Starting balance
+    const equityCurve = sortedTrades.map((trade, index) => {
+      runningEquity += (trade as any).netProfit || 0;
+      const closeTime = (trade as any).closeTime || (trade as any).close_time || (trade as any).openTime || (trade as any).open_time;
+      return {
+        trade: index + 1,
+        equity: runningEquity,
+        date: new Date(closeTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      };
+    });
+
+    // Calculate max drawdown
+    let peak = 100000;
+    let maxDrawdown = 0;
+    equityCurve.forEach(point => {
+      if (point.equity > peak) peak = point.equity;
+      const drawdown = ((peak - point.equity) / peak) * 100;
+      if (drawdown > maxDrawdown) maxDrawdown = drawdown;
+    });
+
+    // 7. Overall Stats
+    const totalProfit = trades.reduce((sum, t) => sum + ((t as any).netProfit || 0), 0);
+    const totalWinProfit = winTrades.reduce((sum, t) => sum + ((t as any).netProfit || 0), 0);
+    const totalLossProfit = Math.abs(lossTrades.reduce((sum, t) => sum + ((t as any).netProfit || 0), 0));
+    const profitFactor = totalLossProfit > 0 ? totalWinProfit / totalLossProfit : 0;
+    const avgWin = winTrades.length > 0 ? totalWinProfit / winTrades.length : 0;
+    const avgLoss = lossTrades.length > 0 ? totalLossProfit / lossTrades.length : 0;
+
+    return {
+      winRateBySymbol,
+      hourStats,
+      dayStats,
+      rMultipleDistribution,
+      monthlyPerformance,
+      equityCurve,
+      overallStats: {
+        totalTrades: trades.length,
+        winRate: (winTrades.length / trades.length) * 100,
+        profitFactor,
+        totalProfit,
+        maxDrawdown,
+        avgWin,
+        avgLoss,
+        expectancy: (avgWin * (winTrades.length / trades.length)) - (avgLoss * (lossTrades.length / trades.length)),
+      },
+    };
+  }, [trades]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
+  if (!analytics) {
+    return (
+      <div className="text-center py-20">
+        <TrendingUp className="w-16 h-16 mx-auto text-slate-300 mb-4" />
+        <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-2">No Trades Yet</h3>
+        <p className="text-slate-500">Start trading to see your analytics!</p>
+      </div>
+    );
+  }
+
+  const { overallStats } = analytics;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       
-      {/* Header with Filters */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">Performance Analytics</h1>
-          <p className="text-sm text-slate-500">Deep dive into your trading metrics</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-lg p-1">
-            {['1W', '1M', '3M', 'ALL'].map((range) => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all ${
-                  timeRange === range
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5">
-            <Download size={16} /> Export
-          </button>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Trading Analytics</h1>
+        <p className="text-slate-500">Deep insights into your trading performance</p>
       </div>
 
-      {/* Key Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          label="Total Profit"
-          value="$10,320"
-          change="+23.5%"
-          trend="up"
-          icon={<DollarSign size={18} />}
-        />
-        <MetricCard
+      {/* Overview Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatCard
+          icon={<Target className="w-5 h-5" />}
           label="Win Rate"
-          value="68.5%"
-          change="+2.3%"
-          trend="up"
-          icon={<Target size={18} />}
+          value={`${overallStats.winRate.toFixed(1)}%`}
+          trend={overallStats.winRate >= 50 ? 'up' : 'down'}
         />
-        <MetricCard
+        <StatCard
+          icon={<DollarSign className="w-5 h-5" />}
           label="Profit Factor"
-          value="2.4"
-          change="+0.3"
-          trend="up"
-          icon={<Activity size={18} />}
+          value={overallStats.profitFactor.toFixed(2)}
+          trend={overallStats.profitFactor >= 1.5 ? 'up' : 'down'}
         />
-        <MetricCard
-          label="Avg R:R"
-          value="1:2.4"
-          change="+0.2"
-          trend="up"
-          icon={<Percent size={18} />}
+        <StatCard
+          icon={<Award className="w-5 h-5" />}
+          label="Expectancy"
+          value={`$${overallStats.expectancy.toFixed(2)}`}
+          trend={overallStats.expectancy > 0 ? 'up' : 'down'}
+        />
+        <StatCard
+          icon={<TrendingDown className="w-5 h-5" />}
+          label="Max Drawdown"
+          value={`${overallStats.maxDrawdown.toFixed(1)}%`}
+          trend="neutral"
         />
       </div>
 
-      {/* Main Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Equity Curve - 2/3 width */}
-        <div className="lg:col-span-2">
-          <ChartCard title="Equity Curve" subtitle="Account growth over time">
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={equityData}>
-                <defs>
-                  <linearGradient id="equityGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" opacity={0.3} />
-                <XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} tickFormatter={(val) => `$${(val/1000).toFixed(0)}k`} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                  formatter={(value: any) => [`$${value.toLocaleString()}`, '']}
-                />
-                <Area type="monotone" dataKey="equity" stroke="#3b82f6" strokeWidth={2} fillOpacity={1} fill="url(#equityGradient)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </div>
-
-        {/* Win Rate Pie - 1/3 width */}
-        <div className="lg:col-span-1">
-          <ChartCard title="Win/Loss Ratio" subtitle="Overall success rate">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={winRateData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {winRateData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value: any) => `${value}%`} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex justify-center gap-6 mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-xs text-slate-600 dark:text-slate-400">Wins (68%)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span className="text-xs text-slate-600 dark:text-slate-400">Losses (32%)</span>
-              </div>
-            </div>
-          </ChartCard>
-        </div>
-      </div>
-
-      {/* Secondary Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Time of Day Performance */}
-        <ChartCard title="Performance by Time" subtitle="Best trading hours">
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={timeOfDayData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" opacity={0.3} />
-              <XAxis dataKey="hour" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-              <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                formatter={(value: any) => [`$${value}`, 'Profit']}
-              />
-              <Bar dataKey="profit" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
-
-        {/* Drawdown Chart */}
-        <ChartCard title="Drawdown History" subtitle="Risk exposure over time">
-          <ResponsiveContainer width="100%" height={250}>
-            <AreaChart data={drawdownHistory}>
-              <defs>
-                <linearGradient id="ddGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" opacity={0.3} />
-              <XAxis dataKey="date" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-              <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                formatter={(value: any) => [`$${value}`, 'Drawdown']}
-              />
-              <Area type="monotone" dataKey="drawdown" stroke="#ef4444" strokeWidth={2} fillOpacity={1} fill="url(#ddGradient)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </ChartCard>
-      </div>
-
-      {/* Profit by Symbol Table */}
-      <ChartCard title="Performance by Symbol" subtitle="Top performing instruments">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 dark:border-white/5">
-              <tr className="text-left text-slate-500 text-xs uppercase tracking-wider">
-                <th className="pb-3 font-semibold">Symbol</th>
-                <th className="pb-3 font-semibold text-right">Profit</th>
-                <th className="pb-3 font-semibold text-right">Trades</th>
-                <th className="pb-3 font-semibold text-right">Win Rate</th>
-                <th className="pb-3 font-semibold text-right">Avg Profit</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-              {profitBySymbol.map((row) => (
-                <tr key={row.symbol} className="hover:bg-slate-50 dark:hover:bg-white/[0.02]">
-                  <td className="py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded bg-slate-100 dark:bg-white/10 flex items-center justify-center text-xs font-bold text-slate-600 dark:text-slate-400">
-                        {row.symbol[0]}
-                      </div>
-                      <span className="font-medium text-slate-900 dark:text-white">{row.symbol}</span>
-                    </div>
-                  </td>
-                  <td className="py-3 text-right">
-                    <span className="font-bold text-green-600 dark:text-green-400">
-                      +${row.profit.toLocaleString()}
-                    </span>
-                  </td>
-                  <td className="py-3 text-right font-mono text-slate-600 dark:text-slate-400">
-                    {row.trades}
-                  </td>
-                  <td className="py-3 text-right">
-                    <div className="inline-flex items-center gap-2">
-                      <div className="w-16 h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-blue-500 rounded-full"
-                          style={{ width: `${row.winRate}%` }}
-                        ></div>
-                      </div>
-                      <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{row.winRate}%</span>
-                    </div>
-                  </td>
-                  <td className="py-3 text-right font-mono text-slate-600 dark:text-slate-400">
-                    ${Math.round(row.profit / row.trades)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </ChartCard>
-
-      {/* Daily P&L Bar Chart */}
-      <ChartCard title="Daily P&L" subtitle="Weekly performance breakdown">
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={dailyPnL}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" opacity={0.3} />
-            <XAxis dataKey="day" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-            <YAxis tick={{ fill: '#94a3b8', fontSize: 11 }} />
+      {/* Win Rate by Symbol */}
+      <ChartCard title="Win Rate by Symbol" icon={<Target />}>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={analytics.winRateBySymbol}>
+            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+            <XAxis dataKey="symbol" tick={{ fontSize: 12 }} />
+            <YAxis tick={{ fontSize: 12 }} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-              formatter={(value: any) => [`$${value}`, 'P&L']}
+              contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px' }}
+              formatter={(value: any, name: string) => [
+                name === 'winRate' ? `${value.toFixed(1)}%` : value,
+                name === 'winRate' ? 'Win Rate' : name
+              ]}
             />
-            <Bar 
-              dataKey="pnl" 
-              radius={[4, 4, 0, 0]}
-              fill="#3b82f6"
-            >
-              {dailyPnL.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.pnl >= 0 ? '#10b981' : '#ef4444'} />
+            <Bar dataKey="winRate" radius={[8, 8, 0, 0]}>
+              {analytics.winRateBySymbol.map((entry, index) => (
+                <Cell key={index} fill={entry.winRate >= 50 ? '#10b981' : '#ef4444'} />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
       </ChartCard>
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {/* Win Rate by Time of Day */}
+        <ChartCard title="Win Rate by Time of Day" icon={<Clock />}>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={analytics.hourStats.filter(h => h.trades > 0)}>
+              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+              <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px' }}
+                formatter={(value: any) => `${value.toFixed(1)}%`}
+              />
+              <Bar dataKey="winRate" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        {/* Win Rate by Day of Week */}
+        <ChartCard title="Win Rate by Day of Week" icon={<Calendar />}>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={analytics.dayStats}>
+              <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+              <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px' }}
+                formatter={(value: any) => `${value.toFixed(1)}%`}
+              />
+              <Bar dataKey="winRate" radius={[8, 8, 0, 0]}>
+                {analytics.dayStats.map((entry, index) => (
+                  <Cell key={index} fill={entry.winRate >= 50 ? '#10b981' : '#f59e0b'} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </div>
+
+      {/* R-Multiple Distribution */}
+      <ChartCard title="R-Multiple Distribution" icon={<Award />}>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={analytics.rMultipleDistribution}>
+            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+            <XAxis dataKey="range" tick={{ fontSize: 12 }} />
+            <YAxis tick={{ fontSize: 12 }} />
+            <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px' }} />
+            <Bar dataKey="count" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      {/* Monthly Performance */}
+      <ChartCard title="Monthly Performance" icon={<TrendingUp />}>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={analytics.monthlyPerformance}>
+            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+            <YAxis tick={{ fontSize: 12 }} />
+            <Tooltip 
+              contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px' }}
+              formatter={(value: any, name: string) => [
+                name === 'profit' ? `$${value.toFixed(2)}` : value,
+                name === 'profit' ? 'Profit' : name
+              ]}
+            />
+            <Bar dataKey="profit" radius={[8, 8, 0, 0]}>
+              {analytics.monthlyPerformance.map((entry: any, index) => (
+                <Cell key={index} fill={entry.profit >= 0 ? '#10b981' : '#ef4444'} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </ChartCard>
+
+      {/* Equity Curve with Drawdown */}
+      <ChartCard title="Equity Curve" icon={<DollarSign />}>
+        <ResponsiveContainer width="100%" height={350}>
+          <AreaChart data={analytics.equityCurve}>
+            <defs>
+              <linearGradient id="equityGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
+            <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+            <YAxis tick={{ fontSize: 12 }} tickFormatter={(val) => `$${(val/1000).toFixed(0)}k`} />
+            <Tooltip 
+              contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '8px' }}
+              formatter={(value: any) => [`$${value.toFixed(2)}`, 'Equity']}
+            />
+            <Area type="monotone" dataKey="equity" stroke="#3b82f6" strokeWidth={2} fill="url(#equityGradient)" />
+          </AreaChart>
+        </ResponsiveContainer>
+        <div className="mt-4 flex items-center justify-between text-sm">
+          <div className="text-slate-600 dark:text-slate-400">
+            Starting: <span className="font-mono font-bold text-slate-900 dark:text-white">$100,000</span>
+          </div>
+          <div className="text-slate-600 dark:text-slate-400">
+            Current: <span className="font-mono font-bold text-green-600">
+              ${analytics.equityCurve[analytics.equityCurve.length - 1]?.equity.toFixed(2)}
+            </span>
+          </div>
+          <div className="text-slate-600 dark:text-slate-400">
+            Max DD: <span className="font-mono font-bold text-red-600">{overallStats.maxDrawdown.toFixed(1)}%</span>
+          </div>
+        </div>
+      </ChartCard>
+
     </div>
   );
 }
 
-// --- SUB-COMPONENTS ---
-
-const MetricCard = ({ label, value, change, trend, icon }: any) => (
-  <div className="bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-xl p-5 hover:border-blue-500/30 transition-colors">
-    <div className="flex items-start justify-between mb-3">
-      <div className="p-2 bg-blue-50 dark:bg-blue-500/10 rounded-lg text-blue-600 dark:text-blue-400">
+// Helper Components
+const StatCard = ({ icon, label, value, trend }: any) => (
+  <div className="bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-xl p-5 shadow-sm">
+    <div className="flex items-center justify-between mb-3">
+      <div className={`p-2 rounded-lg ${
+        trend === 'up' ? 'bg-green-100 dark:bg-green-500/10 text-green-600 dark:text-green-400' :
+        trend === 'down' ? 'bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400' :
+        'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400'
+      }`}>
         {icon}
       </div>
-      <div className={`flex items-center gap-1 text-xs font-medium ${
-        trend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-      }`}>
-        {trend === 'up' ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-        {change}
-      </div>
+      {trend !== 'neutral' && (
+        trend === 'up' ? <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400" /> :
+        <TrendingDown className="w-4 h-4 text-red-600 dark:text-red-400" />
+      )}
     </div>
-    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">{label}</div>
-    <div className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{value}</div>
+    <div className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{value}</div>
+    <div className="text-xs text-slate-500 uppercase tracking-wide">{label}</div>
   </div>
 );
 
-const ChartCard = ({ title, subtitle, children }: any) => (
-  <div className="bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-xl p-6 shadow-sm">
-    <div className="mb-6">
-      <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{title}</h3>
-      {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
+const ChartCard = ({ title, icon, children }: any) => (
+  <div className="bg-white dark:bg-[#0f1115] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
+    <div className="flex items-center gap-3 mb-6">
+      <div className="p-2 bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg">
+        {icon}
+      </div>
+      <h3 className="text-lg font-bold text-slate-900 dark:text-white">{title}</h3>
     </div>
     {children}
   </div>
