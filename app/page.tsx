@@ -14,8 +14,10 @@ ArrowRight,
 Star,
 Shield,
 Trophy,
-Globe,
-Smartphone
+Quote,
+Sparkles,
+Terminal,
+Activity
 } from 'lucide-react';
 
 // --- STYLES & CONFIG ---
@@ -189,10 +191,99 @@ const Testimonials = () => {
   );
 }
 
+const FounderNote = () => {
+return (
+  <section className="py-24 bg-[#0a0b0d] relative overflow-hidden">
+    <div className="max-w-[1400px] mx-auto px-6 relative z-10">
+      
+      <div className="bg-[#13151a] border border-white/5 rounded-3xl p-8 md:p-16 flex flex-col md:flex-row items-center gap-12 relative overflow-hidden">
+         {/* Background decorative elements */}
+         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[100px] pointer-events-none" />
+         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-900/10 rounded-full blur-[100px] pointer-events-none" />
+
+         {/* 1. Cyrus's Image Area */}
+         <div className="w-full md:w-[400px] shrink-0 relative group">
+            {/* Image Container */}
+            <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gradient-to-br from-gray-800 to-black relative shadow-2xl border border-white/10 group-hover:border-[#007aff]/30 transition-colors duration-500">
+               <div className="absolute inset-0 flex items-center justify-center text-gray-600 bg-[#1a1d24]">
+                  <span className="text-xs font-mono uppercase tracking-widest">Image: Cyrus_AuYeung.jpg</span>
+               </div>
+               
+               {/* Overlay Gradient */}
+               <div className="absolute inset-0 bg-gradient-to-t from-[#13151a] via-transparent to-transparent opacity-80"></div>
+               
+               {/* Name Tag on Image */}
+               <div className="absolute bottom-6 left-6">
+                  <div className="text-white font-bold text-2xl font-['Space_Grotesk'] tracking-tight">Cyrus Au-Yeung</div>
+                  <div className="text-[#007aff] text-sm font-medium flex items-center gap-2">
+                      <Terminal className="w-3 h-3" /> Founder & CIO
+                  </div>
+               </div>
+            </div>
+
+            {/* Decorative "Verified" Badge floating */}
+            <div className="absolute -bottom-6 -right-6 bg-[#1a1d24] border border-white/10 p-4 rounded-xl shadow-xl shadow-black/50 hidden md:block backdrop-blur-md">
+               <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#007aff]/20 flex items-center justify-center">
+                      <Activity className="w-5 h-5 text-[#007aff]" />
+                  </div>
+                  <div>
+                      <div className="text-xs text-gray-500 uppercase tracking-wider font-bold">Sharpe Ratio</div>
+                      <div className="text-white font-mono font-bold">3.42 (Top 1%)</div>
+                  </div>
+               </div>
+            </div>
+         </div>
+
+         {/* 2. The Story/Copy */}
+         <div className="flex-1 relative">
+            <Quote className="w-20 h-20 text-white/5 absolute -top-10 -left-6 transform -scale-x-100" />
+            
+            <h2 className="text-3xl md:text-5xl font-['Space_Grotesk'] font-bold mb-8 leading-tight">
+               "The market isn't a casino. <br />
+               <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#007aff] to-[#00c6ff]">It's an engineering problem."</span>
+            </h2>
+            
+            <div className="space-y-6 text-lg text-gray-400 leading-relaxed font-light">
+               <p>
+                  "I spent 8 years building high-frequency algos for institutional desks in Hong Kong. We were fighting for microseconds while retail traders were fighting for survival."
+               </p>
+               <p>
+                  "I founded PROPFIRM to level the playing field. We built our infrastructure on the same Equinix NY4 servers the banks use. We give you the same raw spreads. The only variable left is <strong>your skill</strong>."
+               </p>
+            </div>
+
+            <div className="mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-8 pt-8 border-t border-white/5">
+               <div className="flex flex-col">
+                  {/* Artistic Signature */}
+                  <span className="text-white text-4xl opacity-80" style={{ fontFamily: 'cursive', fontStyle: 'italic' }}>Cyrus A.Y.</span>
+                  <span className="text-xs text-gray-500 uppercase tracking-widest mt-2">Cyrus Au-Yeung</span>
+               </div>
+               
+               <div className="hidden sm:block h-12 w-px bg-white/10"></div>
+
+               <div className="flex gap-2">
+                  <div className="px-4 py-2 bg-white/5 rounded-lg border border-white/5">
+                     <div className="text-xs text-gray-500 uppercase mb-1">Capital Deployed</div>
+                     <div className="text-white font-mono font-bold">$142M+</div>
+                  </div>
+                  <div className="px-4 py-2 bg-white/5 rounded-lg border border-white/5">
+                     <div className="text-xs text-gray-500 uppercase mb-1">Traders Funded</div>
+                     <div className="text-white font-mono font-bold">12,400+</div>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+    </div>
+  </section>
+);
+};
+
 const BentoFeatures = () => {
 return (
   <section className="py-32 bg-[#0a0b0d]">
-     {/* Container: Matches Header Width (Was 1200px, now 1400px) */}
+     {/* Container: Matches Header Width */}
      <div className="max-w-[1400px] mx-auto px-6">
         <div className="text-center mb-16">
            <h2 className={`text-3xl md:text-5xl text-white mb-6 ${styles.h2}`}>Built for Serious Traders</h2>
@@ -278,7 +369,7 @@ return (
     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none" />
     <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
 
-    {/* Container: Matches Header Width (Was 1200px, now 1400px) */}
+    {/* Container: Matches Header Width */}
     <div className="max-w-[1400px] mx-auto px-6 relative z-10">
       <div className="text-center mb-12">
         <h2 className={`text-4xl md:text-5xl text-white mb-6 ${styles.h2}`}>Select Account Size</h2>
@@ -371,6 +462,7 @@ return (
     <Navbar />
     <Hero />
     <Testimonials />
+    <FounderNote />
     <BentoFeatures />
     <PricingMatrix />
     <Footer />
