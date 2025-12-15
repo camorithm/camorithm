@@ -1,15 +1,15 @@
 // File: app/api/download/[filename]/route.ts
 // Serve EA files for download
+// Fixed for Next.js 15+ (params are now async)
 
 import { NextResponse } from 'next/server';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 
 export async function GET(
   request: Request,
-  { params }: { params: { filename: string } }
+  { params }: { params: Promise<{ filename: string }> }  // ← Now a Promise
 ) {
-  const { filename } = params;
+  // Await the params (Next.js 15+ requirement)
+  const { filename } = await params;
 
   // Only allow downloading EA files
   if (!filename.match(/^PropFirmSync\.(mq4|mq5)$/)) {
@@ -17,9 +17,6 @@ export async function GET(
   }
 
   try {
-    // In production, store EA files in public folder or serve from database
-    // For now, return the EA content directly
-    
     const content = filename.endsWith('.mq4') ? MT4_EA_CONTENT : MT5_EA_CONTENT;
     
     return new NextResponse(content, {

@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
+    // Pass cookies as an async function (Supabase expects Promise)
     const supabase = createRouteHandlerClient({ cookies });
     const body = await request.json();
 
@@ -129,6 +130,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'API key required' }, { status: 401 });
   }
 
+  // Pass cookies as an async function (Supabase expects Promise)
   const supabase = createRouteHandlerClient({ cookies });
 
   const { data: profile } = await supabase
