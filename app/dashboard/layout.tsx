@@ -38,9 +38,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   // Logic to determine layout width based on secondary sidebar presence
-  // Shop and Competitions hide the secondary sidebar to give more room
-  const showSecondary = !pathname.includes('/shop') && !pathname.includes('/competitions');
+  // Shop, Competitions, and WebTrader hide the secondary sidebar to give more room
+  const showSecondary = !pathname.includes('/shop') 
+    && !pathname.includes('/competitions')
+    && !pathname.includes('/webtrader');
+    
   const marginLeft = showSecondary ? 'ml-[290px]' : 'ml-[70px]';
+
+  // WebTrader gets full-screen treatment (no TopNav, no padding)
+  const isWebTrader = pathname.includes('/webtrader');
 
   const pageTitle = pathname.split('/').pop() || 'Overview';
 
@@ -54,12 +60,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {showSecondary && <SecondarySidebar />}
 
       {/* 3. Main Content Area */}
-      <div className={`transition-all duration-300 ease-in-out flex flex-col min-h-screen ${marginLeft}`}>
-        <TopNav title={pageTitle} />
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden">
+      {isWebTrader ? (
+        // Full-screen layout for WebTrader
+        <div className={`transition-all duration-300 ease-in-out ${marginLeft}`}>
           {children}
-        </main>
-      </div>
+        </div>
+      ) : (
+        // Standard layout with TopNav and padding
+        <div className={`transition-all duration-300 ease-in-out flex flex-col min-h-screen ${marginLeft}`}>
+          <TopNav title={pageTitle} />
+          <main className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden">
+            {children}
+          </main>
+        </div>
+      )}
     </div>
   );
 }

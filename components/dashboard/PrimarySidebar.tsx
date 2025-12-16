@@ -10,7 +10,7 @@ import {
   Settings, 
   LineChart, 
   GraduationCap,
-  Link2  // Icon for Platforms
+  Link2
 } from 'lucide-react';
 
 export const PrimarySidebar = () => {
@@ -37,7 +37,7 @@ export const PrimarySidebar = () => {
           icon={<LayoutDashboard size={22} />} 
           label="Dashboard" 
           href="/dashboard" 
-          active={isActive('/dashboard') && !pathname.includes('/dashboard/shop') && !pathname.includes('/dashboard/competitions') && !pathname.includes('/dashboard/settings') && !pathname.includes('/dashboard/platforms')} 
+          active={isActive('/dashboard') && !pathname.includes('/dashboard/shop') && !pathname.includes('/dashboard/competitions') && !pathname.includes('/dashboard/settings') && !pathname.includes('/dashboard/platforms') && !pathname.includes('/dashboard/webtrader')} 
         />
         <RailItem 
           icon={<Trophy size={22} />} 
@@ -48,8 +48,8 @@ export const PrimarySidebar = () => {
         <RailItem 
           icon={<LineChart size={22} />} 
           label="WebTrader" 
-          href="#" 
-          active={false} 
+          href="/dashboard/webtrader" 
+          active={pathname.includes('/dashboard/webtrader')} 
         />
         <RailItem 
           icon={<ShoppingCart size={22} />} 
@@ -57,7 +57,6 @@ export const PrimarySidebar = () => {
           href="/dashboard/shop" 
           active={pathname.includes('/dashboard/shop')} 
         />
-        {/* NEW: Platforms Link */}
         <RailItem 
           icon={<Link2 size={22} />} 
           label="Platforms" 
