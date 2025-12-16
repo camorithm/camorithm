@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -19,7 +19,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Maximize2,
-  Minimize2
+  Minimize2,
+  RefreshCw
 } from 'lucide-react';
 
 // Types
@@ -54,7 +55,73 @@ interface WatchlistItem {
   price: number;
   change: number;
   changePercent: number;
+  bid: number;
+  ask: number;
 }
+
+// TradingView Widget Component
+const TradingViewWidget = memo(({ symbol }: { symbol: string }) => {
+  const container = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!container.current) return;
+    
+    // Clear existing widget
+    container.current.innerHTML = '';
+    
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    script.type = "text/javascript";
+    script.async = true;
+    
+    // Map forex symbols to TradingView format
+    const tvSymbol = symbol === 'XAUUSD' 
+      ? 'OANDA:XAUUSD' 
+      : `FX_IDC:${symbol}`;
+    
+    script.innerHTML = JSON.stringify({
+      autosize: true,
+      symbol: tvSymbol,
+      interval: "15",
+      timezone: "Etc/UTC",
+      theme: "dark",
+      style: "1",
+      locale: "en",
+      enable_publishing: false,
+      backgroundColor: "rgba(10, 11, 13, 1)",
+      gridColor: "rgba(255, 255, 255, 0.06)",
+      hide_side_toolbar: false,
+      allow_symbol_change: true,
+      save_image: true,
+      calendar: false,
+      hide_volume: false,
+      support_host: "https://www.tradingview.com"
+    });
+    
+    container.current.appendChild(script);
+    
+    return () => {
+      if (container.current) {
+        container.current.innerHTML = '';
+      }
+    };
+  }, [symbol]);
+
+  return (
+    <div 
+      className="tradingview-widget-container" 
+      ref={container} 
+      style={{ height: "100%", width: "100%" }}
+    >
+      <div 
+        className="tradingview-widget-container__widget" 
+        style={{ height: "calc(100% - 32px)", width: "100%" }}
+      />
+    </div>
+  );
+});
+
+TradingViewWidget.displayName = 'TradingViewWidget';
 
 export default function WebTraderPage() {
   const [selectedSymbol, setSelectedSymbol] = useState('EURUSD');
@@ -69,20 +136,20 @@ export default function WebTraderPage() {
   const [showOrderPanel, setShowOrderPanel] = useState(true);
   const [bottomPanelHeight, setBottomPanelHeight] = useState(250);
   const [isBottomCollapsed, setIsBottomCollapsed] = useState(false);
+  const [isLoadingPrices, setIsLoadingPrices] = useState(false);
 
-  // Mock data
+  // Account state
   const [accountBalance] = useState(100000);
   const [equity, setEquity] = useState(100000);
   const [margin] = useState(500);
   const [freeMargin] = useState(99500);
-  const [marginLevel] = useState(20000);
 
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([
-    { symbol: 'EURUSD', name: 'Euro vs US Dollar', price: 1.0523, change: 0.0012, changePercent: 0.11 },
-    { symbol: 'GBPUSD', name: 'British Pound vs US Dollar', price: 1.2645, change: -0.0023, changePercent: -0.18 },
-    { symbol: 'USDJPY', name: 'US Dollar vs Japanese Yen', price: 149.82, change: 0.45, changePercent: 0.30 },
-    { symbol: 'AUDUSD', name: 'Australian Dollar vs US Dollar', price: 0.6523, change: 0.0008, changePercent: 0.12 },
-    { symbol: 'XAUUSD', name: 'Gold vs US Dollar', price: 2045.30, change: 12.50, changePercent: 0.61 },
+    { symbol: 'EURUSD', name: 'Euro vs US Dollar', price: 1.0523, change: 0.0012, changePercent: 0.11, bid: 1.0521, ask: 1.0525 },
+    { symbol: 'GBPUSD', name: 'British Pound vs US Dollar', price: 1.2645, change: -0.0023, changePercent: -0.18, bid: 1.2643, ask: 1.2647 },
+    { symbol: 'USDJPY', name: 'US Dollar vs Japanese Yen', price: 149.82, change: 0.45, changePercent: 0.30, bid: 149.80, ask: 149.84 },
+    { symbol: 'AUDUSD', name: 'Australian Dollar vs US Dollar', price: 0.6523, change: 0.0008, changePercent: 0.12, bid: 0.6521, ask: 0.6525 },
+    { symbol: 'XAUUSD', name: 'Gold vs US Dollar', price: 2045.30, change: 12.50, changePercent: 0.61, bid: 2045.00, ask: 2045.60 },
   ]);
 
   const [positions, setPositions] = useState<Position[]>([
@@ -127,6 +194,94 @@ export default function WebTraderPage() {
     }
   ]);
 
+  // Fetch live prices from exchangeratesapi.io
+  const fetchLivePrices = async () => {
+    setIsLoadingPrices(true);
+    try {
+      // Note: Replace with your actual API endpoint
+      // For exchangeratesapi.io, you might need to make multiple calls
+      // or use their pro plan for forex rates
+      
+      const symbols = ['EUR', 'GBP', 'AUD']; // Base currencies
+      const base = 'USD';
+      
+      // For demo purposes, we'll fetch EUR/USD rate
+      // In production, you'd fetch all pairs
+      const response = await fetch(`/api/forex-rates?symbols=${symbols.join(',')}&base=${base}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Update watchlist with live rates
+        setWatchlist(prev => prev.map(item => {
+          const symbol = item.symbol;
+          let newPrice = item.price;
+          
+          // Map symbols to API response
+          if (symbol === 'EURUSD' && data.rates?.EUR) {
+            newPrice = 1 / data.rates.EUR; // EUR to USD rate
+          } else if (symbol === 'GBPUSD' && data.rates?.GBP) {
+            newPrice = 1 / data.rates.GBP;
+          } else if (symbol === 'AUDUSD' && data.rates?.AUD) {
+            newPrice = 1 / data.rates.AUD;
+          }
+          
+          const change = newPrice - item.price;
+          const changePercent = (change / item.price) * 100;
+          const spread = symbol.includes('JPY') ? 0.02 : 0.0002;
+          
+          return {
+            ...item,
+            price: newPrice,
+            change,
+            changePercent,
+            bid: newPrice - spread,
+            ask: newPrice + spread
+          };
+        }));
+        
+        // Update open positions with current prices
+        setPositions(prev => prev.map(pos => {
+          const watchlistItem = watchlist.find(w => w.symbol === pos.symbol);
+          if (watchlistItem) {
+            const currentPrice = pos.type === 'buy' ? watchlistItem.bid : watchlistItem.ask;
+            const pipSize = pos.symbol.includes('JPY') ? 0.01 : 0.0001;
+            const pipValue = 10; // Standard for forex
+            
+            let pips: number;
+            if (pos.type === 'buy') {
+              pips = (currentPrice - pos.openPrice) / pipSize;
+            } else {
+              pips = (pos.openPrice - currentPrice) / pipSize;
+            }
+            
+            const profit = pips * pipValue * pos.volume;
+            const profitPercent = (profit / (pos.volume * 100000)) * 100;
+            
+            return {
+              ...pos,
+              currentPrice,
+              profit,
+              profitPercent
+            };
+          }
+          return pos;
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch prices:', error);
+    } finally {
+      setIsLoadingPrices(false);
+    }
+  };
+
+  // Auto-refresh prices every 5 seconds
+  useEffect(() => {
+    fetchLivePrices();
+    const interval = setInterval(fetchLivePrices, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Calculate total P&L
   useEffect(() => {
     const totalProfit = positions.reduce((sum, pos) => sum + pos.profit, 0);
@@ -135,14 +290,16 @@ export default function WebTraderPage() {
 
   const placeOrder = () => {
     if (orderType === 'market') {
-      // Create new position
+      const watchlistItem = watchlist.find(w => w.symbol === selectedSymbol);
+      if (!watchlistItem) return;
+
       const newPosition: Position = {
         id: `pos${Date.now()}`,
         symbol: selectedSymbol,
         type: orderSide,
         volume,
-        openPrice: watchlist.find(w => w.symbol === selectedSymbol)?.price || 0,
-        currentPrice: watchlist.find(w => w.symbol === selectedSymbol)?.price || 0,
+        openPrice: orderSide === 'buy' ? watchlistItem.ask : watchlistItem.bid,
+        currentPrice: orderSide === 'buy' ? watchlistItem.ask : watchlistItem.bid,
         sl: stopLoss ? parseFloat(stopLoss) : null,
         tp: takeProfit ? parseFloat(takeProfit) : null,
         profit: 0,
@@ -156,7 +313,6 @@ export default function WebTraderPage() {
       setStopLoss('');
       setTakeProfit('');
     } else {
-      // Create pending order
       const orderTypeMap = {
         buy: 'buy_limit' as const,
         sell: 'sell_limit' as const
@@ -190,6 +346,12 @@ export default function WebTraderPage() {
     setPendingOrders(pendingOrders.filter(o => o.id !== id));
   };
 
+  const formatPrice = (price: number, symbol: string) => {
+    return price.toFixed(symbol.includes('JPY') ? 2 : 4);
+  };
+
+  const currentSymbolData = watchlist.find(w => w.symbol === selectedSymbol);
+
   return (
     <div className="fixed inset-0 bg-[#0a0b0d] text-white flex flex-col overflow-hidden">
       
@@ -204,7 +366,7 @@ export default function WebTraderPage() {
           </div>
 
           {/* Timeframe Selector */}
-          <div className="flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1">
             {['1m', '5m', '15m', '1h', '4h', '1D'].map(tf => (
               <button 
                 key={tf}
@@ -214,11 +376,21 @@ export default function WebTraderPage() {
               </button>
             ))}
           </div>
+
+          {/* Refresh Button */}
+          <button
+            onClick={fetchLivePrices}
+            disabled={isLoadingPrices}
+            className="p-2 hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50"
+            title="Refresh prices"
+          >
+            <RefreshCw className={`w-4 h-4 text-slate-400 ${isLoadingPrices ? 'animate-spin' : ''}`} />
+          </button>
         </div>
 
         {/* Account Info */}
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
             <span className="text-xs text-slate-500">Balance:</span>
             <span className="font-mono font-bold text-sm">${accountBalance.toLocaleString()}</span>
           </div>
@@ -228,7 +400,7 @@ export default function WebTraderPage() {
               ${equity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2">
             <span className="text-xs text-slate-500">Free Margin:</span>
             <span className="font-mono font-bold text-sm">${freeMargin.toLocaleString()}</span>
           </div>
@@ -282,7 +454,7 @@ export default function WebTraderPage() {
                     <Star className="w-4 h-4 text-slate-600 hover:text-yellow-400 transition-colors cursor-pointer" />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="font-mono font-bold text-sm">{item.price.toFixed(item.symbol.includes('JPY') ? 2 : 4)}</span>
+                    <span className="font-mono font-bold text-sm">{formatPrice(item.price, item.symbol)}</span>
                     <div className={`flex items-center gap-1 text-xs font-medium ${
                       item.change >= 0 ? 'text-green-400' : 'text-red-400'
                     }`}>
@@ -299,28 +471,14 @@ export default function WebTraderPage() {
         {/* CENTER - Chart */}
         <div className="flex-1 flex flex-col bg-[#0a0b0d]">
           <div className="flex-1 relative">
-            {/* TradingView Chart Container */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <BarChart3 className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-                <p className="text-slate-500 text-sm mb-2">TradingView Chart Integration</p>
-                <p className="text-xs text-slate-600 max-w-md">
-                  In production, this would embed the TradingView Advanced Chart widget.<br />
-                  Add your TradingView widget code here with symbol: <span className="font-mono text-blue-400">{selectedSymbol}</span>
-                </p>
-                <div className="mt-4 p-4 bg-[#13151a] border border-white/5 rounded-lg inline-block">
-                  <code className="text-xs text-slate-400">
-                    &lt;TradingViewWidget symbol="{selectedSymbol}" /&gt;
-                  </code>
-                </div>
-              </div>
-            </div>
+            {/* TradingView Chart */}
+            <TradingViewWidget symbol={selectedSymbol} />
 
             {/* Quick Toggle Buttons */}
             {!showWatchlist && (
               <button
                 onClick={() => setShowWatchlist(true)}
-                className="absolute top-4 left-4 p-2 bg-[#13151a] border border-white/5 rounded-lg hover:bg-white/5 transition-colors"
+                className="absolute top-4 left-4 p-2 bg-[#13151a] border border-white/5 rounded-lg hover:bg-white/5 transition-colors z-10"
                 title="Show Watchlist"
               >
                 <ChevronDown className="w-4 h-4 rotate-90" />
@@ -329,7 +487,7 @@ export default function WebTraderPage() {
             {!showOrderPanel && (
               <button
                 onClick={() => setShowOrderPanel(true)}
-                className="absolute top-4 right-4 p-2 bg-[#13151a] border border-white/5 rounded-lg hover:bg-white/5 transition-colors"
+                className="absolute top-4 right-4 p-2 bg-[#13151a] border border-white/5 rounded-lg hover:bg-white/5 transition-colors z-10"
                 title="Show Order Panel"
               >
                 <ChevronDown className="w-4 h-4 -rotate-90" />
@@ -416,22 +574,22 @@ export default function WebTraderPage() {
                               Close
                             </button>
                           </div>
-                          <div className="grid grid-cols-6 gap-4 text-sm">
+                          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
                             <div>
                               <div className="text-xs text-slate-500 mb-1">Open Price</div>
-                              <div className="font-mono">{pos.openPrice.toFixed(4)}</div>
+                              <div className="font-mono">{formatPrice(pos.openPrice, pos.symbol)}</div>
                             </div>
                             <div>
                               <div className="text-xs text-slate-500 mb-1">Current Price</div>
-                              <div className="font-mono">{pos.currentPrice.toFixed(4)}</div>
+                              <div className="font-mono">{formatPrice(pos.currentPrice, pos.symbol)}</div>
                             </div>
                             <div>
                               <div className="text-xs text-slate-500 mb-1">S/L</div>
-                              <div className="font-mono text-xs">{pos.sl ? pos.sl.toFixed(4) : '—'}</div>
+                              <div className="font-mono text-xs">{pos.sl ? formatPrice(pos.sl, pos.symbol) : '—'}</div>
                             </div>
                             <div>
                               <div className="text-xs text-slate-500 mb-1">T/P</div>
-                              <div className="font-mono text-xs">{pos.tp ? pos.tp.toFixed(4) : '—'}</div>
+                              <div className="font-mono text-xs">{pos.tp ? formatPrice(pos.tp, pos.symbol) : '—'}</div>
                             </div>
                             <div>
                               <div className="text-xs text-slate-500 mb-1">Profit/Loss</div>
@@ -477,18 +635,18 @@ export default function WebTraderPage() {
                               Cancel
                             </button>
                           </div>
-                          <div className="grid grid-cols-5 gap-4 text-sm">
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                             <div>
                               <div className="text-xs text-slate-500 mb-1">Entry Price</div>
-                              <div className="font-mono">{order.price.toFixed(4)}</div>
+                              <div className="font-mono">{formatPrice(order.price, order.symbol)}</div>
                             </div>
                             <div>
                               <div className="text-xs text-slate-500 mb-1">S/L</div>
-                              <div className="font-mono text-xs">{order.sl ? order.sl.toFixed(4) : '—'}</div>
+                              <div className="font-mono text-xs">{order.sl ? formatPrice(order.sl, order.symbol) : '—'}</div>
                             </div>
                             <div>
                               <div className="text-xs text-slate-500 mb-1">T/P</div>
-                              <div className="font-mono text-xs">{order.tp ? order.tp.toFixed(4) : '—'}</div>
+                              <div className="font-mono text-xs">{order.tp ? formatPrice(order.tp, order.symbol) : '—'}</div>
                             </div>
                             <div className="col-span-2">
                               <div className="text-xs text-slate-500 mb-1">Created</div>
@@ -528,28 +686,28 @@ export default function WebTraderPage() {
 
             <div className="flex-1 overflow-y-auto p-4">
               {/* Symbol Display */}
-              <div className="bg-[#1a1d24] rounded-lg p-3 mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-bold">{selectedSymbol}</span>
-                  <span className="text-xs text-slate-500">
-                    {watchlist.find(w => w.symbol === selectedSymbol)?.name || ''}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs text-slate-500">Bid</div>
-                    <div className="font-mono font-bold text-red-400">
-                      {(watchlist.find(w => w.symbol === selectedSymbol)?.price || 0).toFixed(4)}
+              {currentSymbolData && (
+                <div className="bg-[#1a1d24] rounded-lg p-3 mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-bold">{selectedSymbol}</span>
+                    <span className="text-xs text-slate-500">{currentSymbolData.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs text-slate-500">Bid</div>
+                      <div className="font-mono font-bold text-red-400">
+                        {formatPrice(currentSymbolData.bid, selectedSymbol)}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-slate-500">Ask</div>
+                      <div className="font-mono font-bold text-green-400">
+                        {formatPrice(currentSymbolData.ask, selectedSymbol)}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs text-slate-500">Ask</div>
-                    <div className="font-mono font-bold text-green-400">
-                      {((watchlist.find(w => w.symbol === selectedSymbol)?.price || 0) + 0.0002).toFixed(4)}
-                    </div>
-                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Order Type Toggle */}
               <div className="flex gap-2 mb-4">
@@ -575,7 +733,7 @@ export default function WebTraderPage() {
                 </button>
               </div>
 
-              {/* Pending Price (only for pending orders) */}
+              {/* Pending Price */}
               {orderType === 'pending' && (
                 <div className="mb-4">
                   <label className="text-xs text-slate-400 mb-2 block">Entry Price</label>
@@ -685,8 +843,8 @@ export default function WebTraderPage() {
                     <div className="text-blue-400/80">
                       Position Size: ${(volume * 100000).toLocaleString()}<br />
                       Margin Required: ~${(volume * 100).toFixed(2)}<br />
-                      {stopLoss && (
-                        <>Risk: ${Math.abs((parseFloat(stopLoss) - (watchlist.find(w => w.symbol === selectedSymbol)?.price || 0)) * volume * 100000).toFixed(2)}</>
+                      {stopLoss && currentSymbolData && (
+                        <>Risk: ${Math.abs((parseFloat(stopLoss) - currentSymbolData.price) * volume * 100000).toFixed(2)}</>
                       )}
                     </div>
                   </div>

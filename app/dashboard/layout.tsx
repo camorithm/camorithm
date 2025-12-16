@@ -45,10 +45,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     
   const marginLeft = showSecondary ? 'ml-[290px]' : 'ml-[70px]';
 
-  // WebTrader gets full-screen treatment (no TopNav, no padding)
+  // WebTrader gets full-screen treatment (no sidebars, no TopNav, no padding)
   const isWebTrader = pathname.includes('/webtrader');
 
   const pageTitle = pathname.split('/').pop() || 'Overview';
+
+  // For WebTrader: Full-screen mode without any dashboard chrome
+  if (isWebTrader) {
+    return (
+      <div className="min-h-screen bg-[#050505] text-white">
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#050505] text-slate-900 dark:text-white font-sans selection:bg-blue-500/30">
@@ -60,20 +69,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {showSecondary && <SecondarySidebar />}
 
       {/* 3. Main Content Area */}
-      {isWebTrader ? (
-        // Full-screen layout for WebTrader
-        <div className={`transition-all duration-300 ease-in-out ${marginLeft}`}>
+      <div className={`transition-all duration-300 ease-in-out flex flex-col min-h-screen ${marginLeft}`}>
+        <TopNav title={pageTitle} />
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden">
           {children}
-        </div>
-      ) : (
-        // Standard layout with TopNav and padding
-        <div className={`transition-all duration-300 ease-in-out flex flex-col min-h-screen ${marginLeft}`}>
-          <TopNav title={pageTitle} />
-          <main className="flex-1 p-6 md:p-8 overflow-y-auto overflow-x-hidden">
-            {children}
-          </main>
-        </div>
-      )}
+        </main>
+      </div>
     </div>
   );
 }
